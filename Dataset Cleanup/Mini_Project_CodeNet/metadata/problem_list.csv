@@ -1,0 +1,9 @@
+id,name,dataset,time_limit,memory_limit,rating,tags,complexity
+p00002,Digit Number,AIZU,1000,131072,,,
+p02256,Greatest Common Divisor,AIZU,1000,131072,,,
+p02400,Circle,AIZU,1000,131072,,,
+p02407,Reversing Numbers,AIZU,1000,131072,,,
+p02971,AtCoder Beginner Contest 134 - Exception Handling,AtCoder,2000,1048576,,,
+p03001,AtCoder Beginner Contest 130 - Rectangle Cutting,AtCoder,2000,1048576,,,
+p03242,AtCoder Beginner Contest 111 - AtCoder Beginner Contest 999,AtCoder,2000,1048576,,,
+p04030,AtCoder Beginner Contest 043 - Unhappy Hacking (ABC Edit),AtCoder,2000,262144,,,
