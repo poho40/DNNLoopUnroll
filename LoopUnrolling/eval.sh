@@ -41,7 +41,7 @@ for loop_factor_dir in "$UNROLL_DIR"/*/; do
 
             # Check if this is the fastest execution
             if (( $(echo "$AVERAGE_TIME < $FASTEST_TIME" | bc -l) )); then
-                AVERAGE_TIME=$EXEC_TIME
+                FASTEST_TIME=$AVERAGE_TIME
                 BEST_FILE="$ll_file"
             fi
 
