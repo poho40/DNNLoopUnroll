@@ -76,14 +76,14 @@ struct LoopUnrollingFeaturePass : public PassInfoMixin<LoopUnrollingFeaturePass>
 
     // Feature: Number of exit branches.
     unsigned exitBranchCount = getExitBranchCount(L);
-    errs() << "Loop has " << exitBranchCount << " exit branches" << "\n";
+    errs() << "Loop has " << exitBranchCount << " exit branches\n";
 
     // Feature: Number of instructions in the loop.
     unsigned instCount = 0;
     for (BasicBlock *BB : L->blocks()) {
       instCount += BB->size();
     }
-    errs() << "Loop has " << instCount << " instructions" << "\n";
+    errs() << "Loop has " << instCount << " instructions\n";
 
     // Initialize counters for various features.
     unsigned arrayAccessCount = 0;
@@ -94,7 +94,8 @@ struct LoopUnrollingFeaturePass : public PassInfoMixin<LoopUnrollingFeaturePass>
     unsigned doubleCmpCount = 0;
     unsigned pointerCmpCount = 0;
     unsigned nullPointerCmpCount = 0;
-    unsigned memAccessCount = 0; // New feature: Total memory accesses
+    unsigned memAccessCount = 0; // Total memory accesses
+    unsigned expressionCount = 0; // New feature: Number of expressions
 
     // Traverse each instruction in the loop's basic blocks.
     for (BasicBlock *BB : L->blocks()) {
@@ -110,6 +111,11 @@ struct LoopUnrollingFeaturePass : public PassInfoMixin<LoopUnrollingFeaturePass>
         } else if (auto *storeInst = dyn_cast<StoreInst>(&I)) {
           if (storeInst->getPointerOperand()->getType()->isPointerTy())
             arrayAccessCount++;
+        }
+
+        // Count expressions: For this example, consider BinaryOperators and comparison instructions (CmpInst) as expressions.
+        if (isa<BinaryOperator>(&I) || isa<CmpInst>(&I)) {
+          expressionCount++;
         }
 
         // Count comparisons.
@@ -141,15 +147,16 @@ struct LoopUnrollingFeaturePass : public PassInfoMixin<LoopUnrollingFeaturePass>
       }
     }
 
-    errs() << "Loop has " << arrayAccessCount << " array accesses" << "\n";
-    errs() << "Loop has " << comparisonToZeroCount << " comparisons to zero" << "\n";
-    errs() << "Loop has " << comparisonToConstantCount << " comparisons to a constant" << "\n";
-    errs() << "Loop has " << intCmpCount << " integer comparisons" << "\n";
-    errs() << "Loop has " << floatCmpCount << " float comparisons" << "\n";
-    errs() << "Loop has " << doubleCmpCount << " double comparisons" << "\n";
-    errs() << "Loop has " << pointerCmpCount << " pointer comparisons" << "\n";
-    errs() << "Loop has " << nullPointerCmpCount << " pointer comparisons to nullptr" << "\n";
-    errs() << "Loop has " << memAccessCount << " memory accesses" << "\n";
+    errs() << "Loop has " << arrayAccessCount << " array accesses\n";
+    errs() << "Loop has " << comparisonToZeroCount << " comparisons to zero\n";
+    errs() << "Loop has " << comparisonToConstantCount << " comparisons to a constant\n";
+    errs() << "Loop has " << intCmpCount << " integer comparisons\n";
+    errs() << "Loop has " << floatCmpCount << " float comparisons\n";
+    errs() << "Loop has " << doubleCmpCount << " double comparisons\n";
+    errs() << "Loop has " << pointerCmpCount << " pointer comparisons\n";
+    errs() << "Loop has " << nullPointerCmpCount << " pointer comparisons to nullptr\n";
+    errs() << "Loop has " << memAccessCount << " memory accesses\n";
+    errs() << "Loop has " << expressionCount << " expressions\n";
 
     // Feature: Min/Max sizes of arrays referenced.
     auto [minArrSize, maxArrSize] = getMinMaxReferencedArraySizes(L);
@@ -170,8 +177,11 @@ struct LoopUnrollingFeaturePass : public PassInfoMixin<LoopUnrollingFeaturePass>
       totalBB++;
       totalInst += BB.size();
     }
-    errs() << "Function has " << totalBB << " basic blocks" << "\n";
-    errs() << "Function has " << totalInst << " instructions" << "\n";
+    errs() << "Function has " << totalBB << " basic blocks\n";
+    errs() << "Function has " << totalInst << " instructions\n";
+
+    // Get ScalarEvolution analysis.
+    // ScalarEvolution &SE = FAM.getResult<ScalarEvolutionAnalysis>(F);
 
     // Count total loops in the function.
     LoopInfo &LI = FAM.getResult<LoopAnalysis>(F);
@@ -179,14 +189,14 @@ struct LoopUnrollingFeaturePass : public PassInfoMixin<LoopUnrollingFeaturePass>
     for (Loop *L : LI) {
       totalLoops += countTotalLoops(L);
     }
-    errs() << "Function has " << totalLoops << " loops" << "\n";
+    errs() << "Function has " << totalLoops << " loops\n";
 
     // Process each loop in the function.
     for (Loop *L : LI) {
       analyzeLoop(L);
     }
 
-    errs() << "Pass has changed" << "\n";
+    errs() << "Pass has changed\n";
     return PreservedAnalyses::all();
   }
 };
