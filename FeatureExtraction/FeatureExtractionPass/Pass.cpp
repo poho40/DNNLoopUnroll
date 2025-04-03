@@ -9,8 +9,8 @@
 #include "llvm/Analysis/BranchProbabilityInfo.h"
 #include "llvm/Passes/PassPlugin.h"
 #include "llvm/Passes/PassBuilder.h"
+#include "llvm/Support/raw_ostream.h"
 
-#include <iostream>
 #include <limits>
 
 using namespace llvm;
@@ -72,18 +72,18 @@ struct LoopUnrollingFeaturePass : public PassInfoMixin<LoopUnrollingFeaturePass>
   void analyzeLoop(Loop *L) {
     // Feature: Loop nesting depth.
     unsigned loopNestDepth = L->getLoopDepth();
-    std::cout << "Loop nesting depth: " << loopNestDepth << std::endl;
+    errs() << "Loop nesting depth: " << loopNestDepth << "\n";
 
     // Feature: Number of exit branches.
     unsigned exitBranchCount = getExitBranchCount(L);
-    std::cout << "Loop has " << exitBranchCount << " exit branches" << std::endl;
+    errs() << "Loop has " << exitBranchCount << " exit branches" << "\n";
 
     // Feature: Number of instructions in the loop.
     unsigned instCount = 0;
     for (BasicBlock *BB : L->blocks()) {
       instCount += BB->size();
     }
-    std::cout << "Loop has " << instCount << " instructions" << std::endl;
+    errs() << "Loop has " << instCount << " instructions" << "\n";
 
     // Initialize counters for various features.
     unsigned arrayAccessCount = 0;
@@ -94,10 +94,15 @@ struct LoopUnrollingFeaturePass : public PassInfoMixin<LoopUnrollingFeaturePass>
     unsigned doubleCmpCount = 0;
     unsigned pointerCmpCount = 0;
     unsigned nullPointerCmpCount = 0;
+    unsigned memAccessCount = 0; // New feature: Total memory accesses
 
     // Traverse each instruction in the loop's basic blocks.
     for (BasicBlock *BB : L->blocks()) {
       for (Instruction &I : *BB) {
+        // Count memory accesses (loads and stores)
+        if (isa<LoadInst>(&I) || isa<StoreInst>(&I)) {
+          memAccessCount++;
+        }
         // Count array accesses.
         if (auto *loadInst = dyn_cast<LoadInst>(&I)) {
           if (loadInst->getPointerOperand()->getType()->isPointerTy())
@@ -136,51 +141,19 @@ struct LoopUnrollingFeaturePass : public PassInfoMixin<LoopUnrollingFeaturePass>
       }
     }
 
-    std::cout << "Loop has " << arrayAccessCount << " array accesses" << std::endl;
-    std::cout << "Loop has " << comparisonToZeroCount << " comparisons to zero" << std::endl;
-    std::cout << "Loop has " << comparisonToConstantCount << " comparisons to a constant" << std::endl;
-    std::cout << "Loop has " << intCmpCount << " integer comparisons" << std::endl;
-    std::cout << "Loop has " << floatCmpCount << " float comparisons" << std::endl;
-    std::cout << "Loop has " << doubleCmpCount << " double comparisons" << std::endl;
-    std::cout << "Loop has " << pointerCmpCount << " pointer comparisons" << std::endl;
-    std::cout << "Loop has " << nullPointerCmpCount << " pointer comparisons to nullptr" << std::endl;
+    errs() << "Loop has " << arrayAccessCount << " array accesses" << "\n";
+    errs() << "Loop has " << comparisonToZeroCount << " comparisons to zero" << "\n";
+    errs() << "Loop has " << comparisonToConstantCount << " comparisons to a constant" << "\n";
+    errs() << "Loop has " << intCmpCount << " integer comparisons" << "\n";
+    errs() << "Loop has " << floatCmpCount << " float comparisons" << "\n";
+    errs() << "Loop has " << doubleCmpCount << " double comparisons" << "\n";
+    errs() << "Loop has " << pointerCmpCount << " pointer comparisons" << "\n";
+    errs() << "Loop has " << nullPointerCmpCount << " pointer comparisons to nullptr" << "\n";
+    errs() << "Loop has " << memAccessCount << " memory accesses" << "\n";
 
     // Feature: Min/Max sizes of arrays referenced.
     auto [minArrSize, maxArrSize] = getMinMaxReferencedArraySizes(L);
-    std::cout << "Loop array allocation sizes (min, max): (" << minArrSize << ", " << maxArrSize << ")" << std::endl;
-
-
-    // unsigned counterArrayAccesses = 0;
-    // SmallVector<Value*, 4> loopCounters;
-
-    // // Get canonical induction variable
-    // if (PHINode *indVar = L->getCanonicalInductionVariable()) {
-    //     loopCounters.push_back(indVar);
-    // }
-
-    // // Fallback: Add all PHI nodes in header
-    // for (auto &I : *L->getHeader()) {
-    //     if (auto *phi = dyn_cast<PHINode>(&I)) {
-    //     loopCounters.push_back(phi);
-    //     }
-    // }
-
-    // for (BasicBlock *BB : L->blocks()) {
-    //     for (Instruction &I : *BB) {
-    //     if (auto *gep = dyn_cast<GetElementPtrInst>(&I)) {
-    //         for (Value *Idx : gep->indices()) {
-    //         for (Value *counter : loopCounters) {
-    //             if (Idx == counter) {
-    //             counterArrayAccesses++;
-    //             break;
-    //             }
-    //         }
-    //         }
-    //     }
-    //     }
-    // }
-
-    // std::cout << "Loop has " << counterArrayAccesses << " array accesses using counter variable" << std::endl;
+    errs() << "Loop array allocation sizes (min, max): (" << minArrSize << ", " << maxArrSize << ")\n";
 
     // Recursively analyze any nested subloops.
     for (Loop *SubLoop : L->getSubLoops()) {
@@ -197,8 +170,8 @@ struct LoopUnrollingFeaturePass : public PassInfoMixin<LoopUnrollingFeaturePass>
       totalBB++;
       totalInst += BB.size();
     }
-    std::cout << "Function has " << totalBB << " basic blocks" << std::endl;
-    std::cout << "Function has " << totalInst << " instructions" << std::endl;
+    errs() << "Function has " << totalBB << " basic blocks" << "\n";
+    errs() << "Function has " << totalInst << " instructions" << "\n";
 
     // Count total loops in the function.
     LoopInfo &LI = FAM.getResult<LoopAnalysis>(F);
@@ -206,15 +179,14 @@ struct LoopUnrollingFeaturePass : public PassInfoMixin<LoopUnrollingFeaturePass>
     for (Loop *L : LI) {
       totalLoops += countTotalLoops(L);
     }
-    std::cout << "Function has " << totalLoops << " loops" << std::endl;
+    errs() << "Function has " << totalLoops << " loops" << "\n";
 
     // Process each loop in the function.
-
     for (Loop *L : LI) {
-        analyzeLoop(L);
+      analyzeLoop(L);
     }
 
-    std::cout << "Pass has changed" << std::endl;
+    errs() << "Pass has changed" << "\n";
     return PreservedAnalyses::all();
   }
 };
