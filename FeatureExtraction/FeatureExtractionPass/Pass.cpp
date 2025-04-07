@@ -94,10 +94,11 @@ struct LoopUnrollingFeaturePass : public PassInfoMixin<LoopUnrollingFeaturePass>
     unsigned doubleCmpCount = 0;
     unsigned pointerCmpCount = 0;
     unsigned nullPointerCmpCount = 0;
-    unsigned memAccessCount = 0;       // Total memory accesses
-    unsigned expressionCount = 0;        // Number of expressions
-    unsigned ifStmtCount = 0;            // Count of if statements
-    unsigned functionCallCount = 0;      // New feature: Number of function calls
+    unsigned memAccessCount = 0;
+    unsigned expressionCount = 0;
+    unsigned ifStmtCount = 0;
+    unsigned functionCallCount = 0;
+    unsigned assignmentCount = 0; 
 
     // Traverse each instruction in the loop's basic blocks.
     for (BasicBlock *BB : L->blocks()) {
@@ -129,6 +130,11 @@ struct LoopUnrollingFeaturePass : public PassInfoMixin<LoopUnrollingFeaturePass>
         // Count function calls.
         if (isa<CallInst>(&I) || isa<InvokeInst>(&I)) {
           functionCallCount++;
+        }
+
+        // Count assignments: In LLVM IR, a "store" is considered an assignment.
+        if (isa<StoreInst>(&I)) {
+          assignmentCount++;
         }
 
         // Count comparisons.
@@ -172,6 +178,7 @@ struct LoopUnrollingFeaturePass : public PassInfoMixin<LoopUnrollingFeaturePass>
     errs() << "Loop has " << expressionCount << " expressions\n";
     errs() << "Loop has " << ifStmtCount << " if statements\n";
     errs() << "Loop has " << functionCallCount << " function calls\n";
+    errs() << "Loop has " << assignmentCount << " assignments\n";
 
     // Feature: Min/Max sizes of arrays referenced.
     auto [minArrSize, maxArrSize] = getMinMaxReferencedArraySizes(L);
