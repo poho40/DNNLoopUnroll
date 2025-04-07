@@ -94,8 +94,10 @@ struct LoopUnrollingFeaturePass : public PassInfoMixin<LoopUnrollingFeaturePass>
     unsigned doubleCmpCount = 0;
     unsigned pointerCmpCount = 0;
     unsigned nullPointerCmpCount = 0;
-    unsigned memAccessCount = 0; // Total memory accesses
-    unsigned expressionCount = 0; // New feature: Number of expressions
+    unsigned memAccessCount = 0;       // Total memory accesses
+    unsigned expressionCount = 0;        // Number of expressions
+    unsigned ifStmtCount = 0;            // Count of if statements
+    unsigned functionCallCount = 0;      // New feature: Number of function calls
 
     // Traverse each instruction in the loop's basic blocks.
     for (BasicBlock *BB : L->blocks()) {
@@ -113,9 +115,20 @@ struct LoopUnrollingFeaturePass : public PassInfoMixin<LoopUnrollingFeaturePass>
             arrayAccessCount++;
         }
 
-        // Count expressions: For this example, consider BinaryOperators and comparison instructions (CmpInst) as expressions.
+        // Count expressions: Binary operators and comparison instructions.
         if (isa<BinaryOperator>(&I) || isa<CmpInst>(&I)) {
           expressionCount++;
+        }
+
+        // Count if statements: conditional branches not in the loop header.
+        if (auto *brInst = dyn_cast<BranchInst>(&I)) {
+          if (brInst->isConditional() && (BB != L->getHeader()))
+            ifStmtCount++;
+        }
+
+        // Count function calls.
+        if (isa<CallInst>(&I) || isa<InvokeInst>(&I)) {
+          functionCallCount++;
         }
 
         // Count comparisons.
@@ -157,10 +170,30 @@ struct LoopUnrollingFeaturePass : public PassInfoMixin<LoopUnrollingFeaturePass>
     errs() << "Loop has " << nullPointerCmpCount << " pointer comparisons to nullptr\n";
     errs() << "Loop has " << memAccessCount << " memory accesses\n";
     errs() << "Loop has " << expressionCount << " expressions\n";
+    errs() << "Loop has " << ifStmtCount << " if statements\n";
+    errs() << "Loop has " << functionCallCount << " function calls\n";
 
     // Feature: Min/Max sizes of arrays referenced.
     auto [minArrSize, maxArrSize] = getMinMaxReferencedArraySizes(L);
     errs() << "Loop array allocation sizes (min, max): (" << minArrSize << ", " << maxArrSize << ")\n";
+
+    // Feature: Cyclomatic Complexity for the loop.
+    // Compute the number of nodes (basic blocks) and edges (within the loop).
+    unsigned numNodes = 0;
+    unsigned numEdges = 0;
+    for (BasicBlock *BB : L->blocks()) {
+      numNodes++;
+      auto *TI = BB->getTerminator();
+      for (unsigned i = 0; i < TI->getNumSuccessors(); i++) {
+        BasicBlock *Succ = TI->getSuccessor(i);
+        if (L->contains(Succ))
+          numEdges++;
+      }
+    }
+    // For a connected graph: CC = E - N + 2.
+    unsigned cyclomaticComplexity = (numEdges >= numNodes) ? numEdges - numNodes + 2 : 1;
+    errs() << "Number of basic blocks in loop: " << numNodes << "\n";
+    errs() << "Cyclomatic complexity: " << cyclomaticComplexity << "\n";
 
     // Recursively analyze any nested subloops.
     for (Loop *SubLoop : L->getSubLoops()) {
@@ -179,9 +212,6 @@ struct LoopUnrollingFeaturePass : public PassInfoMixin<LoopUnrollingFeaturePass>
     }
     errs() << "Function has " << totalBB << " basic blocks\n";
     errs() << "Function has " << totalInst << " instructions\n";
-
-    // Get ScalarEvolution analysis.
-    // ScalarEvolution &SE = FAM.getResult<ScalarEvolutionAnalysis>(F);
 
     // Count total loops in the function.
     LoopInfo &LI = FAM.getResult<LoopAnalysis>(F);
