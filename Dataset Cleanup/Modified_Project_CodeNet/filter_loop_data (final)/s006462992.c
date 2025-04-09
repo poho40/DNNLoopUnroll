@@ -10,7 +10,7 @@ n = 26;
 
 int scan[n];
 
-for(int i = 0; 0 < n; i++){
+for(int i = 0; i < n; i++){
 a = 34;
 scan[i] = a;
 }
