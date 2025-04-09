@@ -1,3 +1,5 @@
+#include <stdio.h>
+#include <string.h>
 #include<stdio.h>
 
 #define N 1000000000

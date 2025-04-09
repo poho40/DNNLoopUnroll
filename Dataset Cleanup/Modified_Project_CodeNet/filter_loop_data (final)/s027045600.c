@@ -1,3 +1,5 @@
+#include <stdio.h>
+#include <string.h>
 #include<stdio.h>
 int main(){
   int n,a[200001],i,sec=0,max=0;

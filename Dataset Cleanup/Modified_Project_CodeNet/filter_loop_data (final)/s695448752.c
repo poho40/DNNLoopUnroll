@@ -1,3 +1,5 @@
+#include <stdio.h>
+#include <string.h>
 #include<stdio.h>
 void sort(int *x,int *y);
 int GCD(int x,int y);

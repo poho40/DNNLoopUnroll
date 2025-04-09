@@ -1,3 +1,5 @@
+#include <stdio.h>
+#include <string.h>
 int main(void)
 {
 int n,i,max=0,j=0,second=0,num;

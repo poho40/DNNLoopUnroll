@@ -1,3 +1,4 @@
+#include <string.h>
 #include <stdio.h>
 
 int max2(int len, int *nums) {

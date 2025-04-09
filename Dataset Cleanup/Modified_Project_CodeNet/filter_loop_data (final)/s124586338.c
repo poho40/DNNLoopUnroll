@@ -1,3 +1,5 @@
+#include <stdio.h>
+#include <string.h>
 #include<stdio.h>
 
 void trace(int A[],int N){

@@ -1,3 +1,4 @@
+#include <string.h>
 /* ex 9_1
    アカウント名 */
 

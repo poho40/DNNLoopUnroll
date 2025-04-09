@@ -1,3 +1,5 @@
+#include <stdio.h>
+#include <string.h>
 #include<stdio.h>
 int main(){
   int i,n,max=0,sec=0;

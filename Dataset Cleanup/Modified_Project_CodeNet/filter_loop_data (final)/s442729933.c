@@ -1,3 +1,5 @@
+#include <stdio.h>
+#include <string.h>
 #include<stdio.h>
 int sq(int w,int h,int x,int y,int n){
   if(n){

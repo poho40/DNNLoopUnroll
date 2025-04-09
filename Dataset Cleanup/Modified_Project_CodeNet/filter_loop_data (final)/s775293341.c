@@ -1,3 +1,5 @@
+#include <stdio.h>
+#include <string.h>
 /*
  * exception_handling.c
  *

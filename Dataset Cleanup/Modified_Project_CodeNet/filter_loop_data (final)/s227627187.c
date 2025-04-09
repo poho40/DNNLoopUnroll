@@ -1,3 +1,4 @@
+#include <string.h>
 #include <stdio.h>
 
 int count_Prime_Numbers(int num, int p) {

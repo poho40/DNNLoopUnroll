@@ -1,3 +1,5 @@
+#include <stdio.h>
+#include <string.h>
 #include<stdio.h>
 int up(const void *a,const void *b){
   return *(int *)a - *(int *)b;

@@ -1,3 +1,5 @@
+#include <stdio.h>
+#include <string.h>
 #include "stdio.h"
 #define NUMBER 100
 int main(void){

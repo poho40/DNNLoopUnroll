@@ -13,10 +13,10 @@ define dso_local i32 @main() #0 {
   store i32 0, ptr %3, align 4
   br label %5
 
-5:                                                ; preds = %75, %0
+5:                                                ; preds = %39, %0
   %6 = load i32, ptr %3, align 4
   %7 = icmp slt i32 %6, 1000
-  br i1 %7, label %8, label %78
+  br i1 %7, label %8, label %42
 
 8:                                                ; preds = %5
   %9 = load i32, ptr %3, align 4
@@ -31,7 +31,7 @@ define dso_local i32 @main() #0 {
   store i32 %14, ptr %3, align 4
   %15 = load i32, ptr %3, align 4
   %16 = icmp slt i32 %15, 1000
-  br i1 %16, label %17, label %78
+  br i1 %16, label %17, label %42
 
 17:                                               ; preds = %12
   %18 = load i32, ptr %3, align 4
@@ -46,7 +46,7 @@ define dso_local i32 @main() #0 {
   store i32 %23, ptr %3, align 4
   %24 = load i32, ptr %3, align 4
   %25 = icmp slt i32 %24, 1000
-  br i1 %25, label %26, label %78
+  br i1 %25, label %26, label %42
 
 26:                                               ; preds = %21
   %27 = load i32, ptr %3, align 4
@@ -61,7 +61,7 @@ define dso_local i32 @main() #0 {
   store i32 %32, ptr %3, align 4
   %33 = load i32, ptr %3, align 4
   %34 = icmp slt i32 %33, 1000
-  br i1 %34, label %35, label %78
+  br i1 %34, label %35, label %42
 
 35:                                               ; preds = %30
   %36 = load i32, ptr %3, align 4
@@ -74,198 +74,78 @@ define dso_local i32 @main() #0 {
   %40 = load i32, ptr %3, align 4
   %41 = add nsw i32 %40, 1
   store i32 %41, ptr %3, align 4
-  %42 = load i32, ptr %3, align 4
-  %43 = icmp slt i32 %42, 1000
-  br i1 %43, label %44, label %78
-
-44:                                               ; preds = %39
-  %45 = load i32, ptr %3, align 4
-  %46 = sext i32 %45 to i64
-  %47 = getelementptr inbounds [1000 x i32], ptr %2, i64 0, i64 %46
-  store i32 0, ptr %47, align 4
-  br label %48
-
-48:                                               ; preds = %44
-  %49 = load i32, ptr %3, align 4
-  %50 = add nsw i32 %49, 1
-  store i32 %50, ptr %3, align 4
-  %51 = load i32, ptr %3, align 4
-  %52 = icmp slt i32 %51, 1000
-  br i1 %52, label %53, label %78
-
-53:                                               ; preds = %48
-  %54 = load i32, ptr %3, align 4
-  %55 = sext i32 %54 to i64
-  %56 = getelementptr inbounds [1000 x i32], ptr %2, i64 0, i64 %55
-  store i32 0, ptr %56, align 4
-  br label %57
-
-57:                                               ; preds = %53
-  %58 = load i32, ptr %3, align 4
-  %59 = add nsw i32 %58, 1
-  store i32 %59, ptr %3, align 4
-  %60 = load i32, ptr %3, align 4
-  %61 = icmp slt i32 %60, 1000
-  br i1 %61, label %62, label %78
-
-62:                                               ; preds = %57
-  %63 = load i32, ptr %3, align 4
-  %64 = sext i32 %63 to i64
-  %65 = getelementptr inbounds [1000 x i32], ptr %2, i64 0, i64 %64
-  store i32 0, ptr %65, align 4
-  br label %66
-
-66:                                               ; preds = %62
-  %67 = load i32, ptr %3, align 4
-  %68 = add nsw i32 %67, 1
-  store i32 %68, ptr %3, align 4
-  %69 = load i32, ptr %3, align 4
-  %70 = icmp slt i32 %69, 1000
-  br i1 %70, label %71, label %78
-
-71:                                               ; preds = %66
-  %72 = load i32, ptr %3, align 4
-  %73 = sext i32 %72 to i64
-  %74 = getelementptr inbounds [1000 x i32], ptr %2, i64 0, i64 %73
-  store i32 0, ptr %74, align 4
-  br label %75
-
-75:                                               ; preds = %71
-  %76 = load i32, ptr %3, align 4
-  %77 = add nsw i32 %76, 1
-  store i32 %77, ptr %3, align 4
   br label %5, !llvm.loop !6
 
-78:                                               ; preds = %66, %57, %48, %39, %30, %21, %12, %5
+42:                                               ; preds = %30, %21, %12, %5
   store i32 0, ptr %3, align 4
-  br label %79
+  br label %43
 
-79:                                               ; preds = %149, %78
-  %80 = load i32, ptr %3, align 4
-  %81 = icmp slt i32 %80, 1000
-  br i1 %81, label %82, label %152
+43:                                               ; preds = %77, %42
+  %44 = load i32, ptr %3, align 4
+  %45 = icmp slt i32 %44, 1000
+  br i1 %45, label %46, label %80
 
-82:                                               ; preds = %79
-  %83 = load i32, ptr %3, align 4
-  %84 = sext i32 %83 to i64
-  %85 = getelementptr inbounds [1000 x i32], ptr %2, i64 0, i64 %84
-  store i32 0, ptr %85, align 4
-  br label %86
+46:                                               ; preds = %43
+  %47 = load i32, ptr %3, align 4
+  %48 = sext i32 %47 to i64
+  %49 = getelementptr inbounds [1000 x i32], ptr %2, i64 0, i64 %48
+  store i32 0, ptr %49, align 4
+  br label %50
 
-86:                                               ; preds = %82
-  %87 = load i32, ptr %3, align 4
-  %88 = add nsw i32 %87, 1
-  store i32 %88, ptr %3, align 4
-  %89 = load i32, ptr %3, align 4
-  %90 = icmp slt i32 %89, 1000
-  br i1 %90, label %91, label %152
+50:                                               ; preds = %46
+  %51 = load i32, ptr %3, align 4
+  %52 = add nsw i32 %51, 1
+  store i32 %52, ptr %3, align 4
+  %53 = load i32, ptr %3, align 4
+  %54 = icmp slt i32 %53, 1000
+  br i1 %54, label %55, label %80
 
-91:                                               ; preds = %86
-  %92 = load i32, ptr %3, align 4
-  %93 = sext i32 %92 to i64
-  %94 = getelementptr inbounds [1000 x i32], ptr %2, i64 0, i64 %93
-  store i32 0, ptr %94, align 4
-  br label %95
+55:                                               ; preds = %50
+  %56 = load i32, ptr %3, align 4
+  %57 = sext i32 %56 to i64
+  %58 = getelementptr inbounds [1000 x i32], ptr %2, i64 0, i64 %57
+  store i32 0, ptr %58, align 4
+  br label %59
 
-95:                                               ; preds = %91
-  %96 = load i32, ptr %3, align 4
-  %97 = add nsw i32 %96, 1
-  store i32 %97, ptr %3, align 4
-  %98 = load i32, ptr %3, align 4
-  %99 = icmp slt i32 %98, 1000
-  br i1 %99, label %100, label %152
+59:                                               ; preds = %55
+  %60 = load i32, ptr %3, align 4
+  %61 = add nsw i32 %60, 1
+  store i32 %61, ptr %3, align 4
+  %62 = load i32, ptr %3, align 4
+  %63 = icmp slt i32 %62, 1000
+  br i1 %63, label %64, label %80
 
-100:                                              ; preds = %95
-  %101 = load i32, ptr %3, align 4
-  %102 = sext i32 %101 to i64
-  %103 = getelementptr inbounds [1000 x i32], ptr %2, i64 0, i64 %102
-  store i32 0, ptr %103, align 4
-  br label %104
+64:                                               ; preds = %59
+  %65 = load i32, ptr %3, align 4
+  %66 = sext i32 %65 to i64
+  %67 = getelementptr inbounds [1000 x i32], ptr %2, i64 0, i64 %66
+  store i32 0, ptr %67, align 4
+  br label %68
 
-104:                                              ; preds = %100
-  %105 = load i32, ptr %3, align 4
-  %106 = add nsw i32 %105, 1
-  store i32 %106, ptr %3, align 4
-  %107 = load i32, ptr %3, align 4
-  %108 = icmp slt i32 %107, 1000
-  br i1 %108, label %109, label %152
+68:                                               ; preds = %64
+  %69 = load i32, ptr %3, align 4
+  %70 = add nsw i32 %69, 1
+  store i32 %70, ptr %3, align 4
+  %71 = load i32, ptr %3, align 4
+  %72 = icmp slt i32 %71, 1000
+  br i1 %72, label %73, label %80
 
-109:                                              ; preds = %104
-  %110 = load i32, ptr %3, align 4
-  %111 = sext i32 %110 to i64
-  %112 = getelementptr inbounds [1000 x i32], ptr %2, i64 0, i64 %111
-  store i32 0, ptr %112, align 4
-  br label %113
+73:                                               ; preds = %68
+  %74 = load i32, ptr %3, align 4
+  %75 = sext i32 %74 to i64
+  %76 = getelementptr inbounds [1000 x i32], ptr %2, i64 0, i64 %75
+  store i32 0, ptr %76, align 4
+  br label %77
 
-113:                                              ; preds = %109
-  %114 = load i32, ptr %3, align 4
-  %115 = add nsw i32 %114, 1
-  store i32 %115, ptr %3, align 4
-  %116 = load i32, ptr %3, align 4
-  %117 = icmp slt i32 %116, 1000
-  br i1 %117, label %118, label %152
+77:                                               ; preds = %73
+  %78 = load i32, ptr %3, align 4
+  %79 = add nsw i32 %78, 1
+  store i32 %79, ptr %3, align 4
+  br label %43, !llvm.loop !8
 
-118:                                              ; preds = %113
-  %119 = load i32, ptr %3, align 4
-  %120 = sext i32 %119 to i64
-  %121 = getelementptr inbounds [1000 x i32], ptr %2, i64 0, i64 %120
-  store i32 0, ptr %121, align 4
-  br label %122
-
-122:                                              ; preds = %118
-  %123 = load i32, ptr %3, align 4
-  %124 = add nsw i32 %123, 1
-  store i32 %124, ptr %3, align 4
-  %125 = load i32, ptr %3, align 4
-  %126 = icmp slt i32 %125, 1000
-  br i1 %126, label %127, label %152
-
-127:                                              ; preds = %122
-  %128 = load i32, ptr %3, align 4
-  %129 = sext i32 %128 to i64
-  %130 = getelementptr inbounds [1000 x i32], ptr %2, i64 0, i64 %129
-  store i32 0, ptr %130, align 4
-  br label %131
-
-131:                                              ; preds = %127
-  %132 = load i32, ptr %3, align 4
-  %133 = add nsw i32 %132, 1
-  store i32 %133, ptr %3, align 4
-  %134 = load i32, ptr %3, align 4
-  %135 = icmp slt i32 %134, 1000
-  br i1 %135, label %136, label %152
-
-136:                                              ; preds = %131
-  %137 = load i32, ptr %3, align 4
-  %138 = sext i32 %137 to i64
-  %139 = getelementptr inbounds [1000 x i32], ptr %2, i64 0, i64 %138
-  store i32 0, ptr %139, align 4
-  br label %140
-
-140:                                              ; preds = %136
-  %141 = load i32, ptr %3, align 4
-  %142 = add nsw i32 %141, 1
-  store i32 %142, ptr %3, align 4
-  %143 = load i32, ptr %3, align 4
-  %144 = icmp slt i32 %143, 1000
-  br i1 %144, label %145, label %152
-
-145:                                              ; preds = %140
-  %146 = load i32, ptr %3, align 4
-  %147 = sext i32 %146 to i64
-  %148 = getelementptr inbounds [1000 x i32], ptr %2, i64 0, i64 %147
-  store i32 0, ptr %148, align 4
-  br label %149
-
-149:                                              ; preds = %145
-  %150 = load i32, ptr %3, align 4
-  %151 = add nsw i32 %150, 1
-  store i32 %151, ptr %3, align 4
-  br label %79, !llvm.loop !8
-
-152:                                              ; preds = %140, %131, %122, %113, %104, %95, %86, %79
-  %153 = load i32, ptr %1, align 4
-  ret i32 %153
+80:                                               ; preds = %68, %59, %50, %43
+  %81 = load i32, ptr %1, align 4
+  ret i32 %81
 }
 
 attributes #0 = { noinline nounwind uwtable "frame-pointer"="all" "min-legal-vector-width"="0" "no-trapping-math"="true" "stack-protector-buffer-size"="8" "target-cpu"="x86-64" "target-features"="+cmov,+cx8,+fxsr,+mmx,+sse,+sse2,+x87" "tune-cpu"="generic" }

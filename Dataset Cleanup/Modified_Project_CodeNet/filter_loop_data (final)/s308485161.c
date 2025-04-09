@@ -1,3 +1,4 @@
+#include <string.h>
 #include <stdio.h>
 int euclid( int a, int b )
 {

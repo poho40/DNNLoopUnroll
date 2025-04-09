@@ -1,3 +1,5 @@
+#include <stdio.h>
+#include <string.h>
 /*s1190073  Rina Sato,
 File name:prog1b.c,
 2012 4/18(Wed),

@@ -1,3 +1,4 @@
+#include <string.h>
 #include <stdio.h>
 int main(){
   int i,x,y,z1,z2,n;

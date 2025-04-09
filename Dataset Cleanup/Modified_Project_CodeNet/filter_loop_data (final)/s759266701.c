@@ -1,6 +1,7 @@
+#include <string.h>
 #include <stdio.h>
 
-main(){
+int main(){
   int x,y,i,j;
   
 x = 87;

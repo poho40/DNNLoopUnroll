@@ -1,0 +1,298 @@
+; ModuleID = 's758731283.ls.bc'
+source_filename = "s758731283.c"
+target datalayout = "e-m:e-p270:32:32-p271:32:32-p272:64:64-i64:64-i128:128-f80:128-n8:16:32:64-S128"
+target triple = "x86_64-unknown-linux-gnu"
+
+@.str = private unnamed_addr constant [4 x i8] c"%d\0A\00", align 1
+
+; Function Attrs: noinline nounwind uwtable
+define dso_local i32 @main() #0 {
+  %1 = alloca i32, align 4
+  %2 = alloca i32, align 4
+  %3 = alloca i32, align 4
+  store i32 0, ptr %1, align 4
+  store i32 74, ptr %2, align 4
+  store i32 24, ptr %3, align 4
+  %4 = load i32, ptr %2, align 4
+  %5 = load i32, ptr %3, align 4
+  call void @gcd(i32 noundef %4, i32 noundef %5)
+  ret i32 0
+}
+
+; Function Attrs: noinline nounwind uwtable
+define dso_local void @gcd(i32 noundef %0, i32 noundef %1) #0 {
+  %3 = alloca i32, align 4
+  %4 = alloca i32, align 4
+  %5 = alloca i32, align 4
+  %6 = alloca i32, align 4
+  store i32 %0, ptr %3, align 4
+  store i32 %1, ptr %4, align 4
+  %7 = load i32, ptr %3, align 4
+  %8 = load i32, ptr %4, align 4
+  %9 = icmp sgt i32 %7, %8
+  br i1 %9, label %10, label %23
+
+10:                                               ; preds = %2
+  br label %11
+
+11:                                               ; preds = %14, %10
+  %12 = load i32, ptr %4, align 4
+  %13 = icmp sgt i32 %12, 0
+  br i1 %13, label %14, label %20
+
+14:                                               ; preds = %11
+  %15 = load i32, ptr %3, align 4
+  %16 = load i32, ptr %4, align 4
+  %17 = srem i32 %15, %16
+  store i32 %17, ptr %6, align 4
+  %18 = load i32, ptr %4, align 4
+  store i32 %18, ptr %3, align 4
+  %19 = load i32, ptr %6, align 4
+  store i32 %19, ptr %4, align 4
+  br label %11, !llvm.loop !6
+
+20:                                               ; preds = %11
+  %21 = load i32, ptr %3, align 4
+  %22 = call i32 (ptr, ...) @printf(ptr noundef @.str, i32 noundef %21)
+  br label %156
+
+23:                                               ; preds = %2
+  br label %24
+
+24:                                               ; preds = %147, %23
+  %25 = load i32, ptr %3, align 4
+  %26 = icmp sgt i32 %25, 0
+  br i1 %26, label %27, label %153
+
+27:                                               ; preds = %24
+  %28 = load i32, ptr %4, align 4
+  %29 = load i32, ptr %3, align 4
+  %30 = srem i32 %28, %29
+  store i32 %30, ptr %6, align 4
+  %31 = load i32, ptr %3, align 4
+  store i32 %31, ptr %4, align 4
+  %32 = load i32, ptr %6, align 4
+  store i32 %32, ptr %3, align 4
+  %33 = load i32, ptr %3, align 4
+  %34 = icmp sgt i32 %33, 0
+  br i1 %34, label %35, label %153
+
+35:                                               ; preds = %27
+  %36 = load i32, ptr %4, align 4
+  %37 = load i32, ptr %3, align 4
+  %38 = srem i32 %36, %37
+  store i32 %38, ptr %6, align 4
+  %39 = load i32, ptr %3, align 4
+  store i32 %39, ptr %4, align 4
+  %40 = load i32, ptr %6, align 4
+  store i32 %40, ptr %3, align 4
+  %41 = load i32, ptr %3, align 4
+  %42 = icmp sgt i32 %41, 0
+  br i1 %42, label %43, label %153
+
+43:                                               ; preds = %35
+  %44 = load i32, ptr %4, align 4
+  %45 = load i32, ptr %3, align 4
+  %46 = srem i32 %44, %45
+  store i32 %46, ptr %6, align 4
+  %47 = load i32, ptr %3, align 4
+  store i32 %47, ptr %4, align 4
+  %48 = load i32, ptr %6, align 4
+  store i32 %48, ptr %3, align 4
+  %49 = load i32, ptr %3, align 4
+  %50 = icmp sgt i32 %49, 0
+  br i1 %50, label %51, label %153
+
+51:                                               ; preds = %43
+  %52 = load i32, ptr %4, align 4
+  %53 = load i32, ptr %3, align 4
+  %54 = srem i32 %52, %53
+  store i32 %54, ptr %6, align 4
+  %55 = load i32, ptr %3, align 4
+  store i32 %55, ptr %4, align 4
+  %56 = load i32, ptr %6, align 4
+  store i32 %56, ptr %3, align 4
+  %57 = load i32, ptr %3, align 4
+  %58 = icmp sgt i32 %57, 0
+  br i1 %58, label %59, label %153
+
+59:                                               ; preds = %51
+  %60 = load i32, ptr %4, align 4
+  %61 = load i32, ptr %3, align 4
+  %62 = srem i32 %60, %61
+  store i32 %62, ptr %6, align 4
+  %63 = load i32, ptr %3, align 4
+  store i32 %63, ptr %4, align 4
+  %64 = load i32, ptr %6, align 4
+  store i32 %64, ptr %3, align 4
+  %65 = load i32, ptr %3, align 4
+  %66 = icmp sgt i32 %65, 0
+  br i1 %66, label %67, label %153
+
+67:                                               ; preds = %59
+  %68 = load i32, ptr %4, align 4
+  %69 = load i32, ptr %3, align 4
+  %70 = srem i32 %68, %69
+  store i32 %70, ptr %6, align 4
+  %71 = load i32, ptr %3, align 4
+  store i32 %71, ptr %4, align 4
+  %72 = load i32, ptr %6, align 4
+  store i32 %72, ptr %3, align 4
+  %73 = load i32, ptr %3, align 4
+  %74 = icmp sgt i32 %73, 0
+  br i1 %74, label %75, label %153
+
+75:                                               ; preds = %67
+  %76 = load i32, ptr %4, align 4
+  %77 = load i32, ptr %3, align 4
+  %78 = srem i32 %76, %77
+  store i32 %78, ptr %6, align 4
+  %79 = load i32, ptr %3, align 4
+  store i32 %79, ptr %4, align 4
+  %80 = load i32, ptr %6, align 4
+  store i32 %80, ptr %3, align 4
+  %81 = load i32, ptr %3, align 4
+  %82 = icmp sgt i32 %81, 0
+  br i1 %82, label %83, label %153
+
+83:                                               ; preds = %75
+  %84 = load i32, ptr %4, align 4
+  %85 = load i32, ptr %3, align 4
+  %86 = srem i32 %84, %85
+  store i32 %86, ptr %6, align 4
+  %87 = load i32, ptr %3, align 4
+  store i32 %87, ptr %4, align 4
+  %88 = load i32, ptr %6, align 4
+  store i32 %88, ptr %3, align 4
+  %89 = load i32, ptr %3, align 4
+  %90 = icmp sgt i32 %89, 0
+  br i1 %90, label %91, label %153
+
+91:                                               ; preds = %83
+  %92 = load i32, ptr %4, align 4
+  %93 = load i32, ptr %3, align 4
+  %94 = srem i32 %92, %93
+  store i32 %94, ptr %6, align 4
+  %95 = load i32, ptr %3, align 4
+  store i32 %95, ptr %4, align 4
+  %96 = load i32, ptr %6, align 4
+  store i32 %96, ptr %3, align 4
+  %97 = load i32, ptr %3, align 4
+  %98 = icmp sgt i32 %97, 0
+  br i1 %98, label %99, label %153
+
+99:                                               ; preds = %91
+  %100 = load i32, ptr %4, align 4
+  %101 = load i32, ptr %3, align 4
+  %102 = srem i32 %100, %101
+  store i32 %102, ptr %6, align 4
+  %103 = load i32, ptr %3, align 4
+  store i32 %103, ptr %4, align 4
+  %104 = load i32, ptr %6, align 4
+  store i32 %104, ptr %3, align 4
+  %105 = load i32, ptr %3, align 4
+  %106 = icmp sgt i32 %105, 0
+  br i1 %106, label %107, label %153
+
+107:                                              ; preds = %99
+  %108 = load i32, ptr %4, align 4
+  %109 = load i32, ptr %3, align 4
+  %110 = srem i32 %108, %109
+  store i32 %110, ptr %6, align 4
+  %111 = load i32, ptr %3, align 4
+  store i32 %111, ptr %4, align 4
+  %112 = load i32, ptr %6, align 4
+  store i32 %112, ptr %3, align 4
+  %113 = load i32, ptr %3, align 4
+  %114 = icmp sgt i32 %113, 0
+  br i1 %114, label %115, label %153
+
+115:                                              ; preds = %107
+  %116 = load i32, ptr %4, align 4
+  %117 = load i32, ptr %3, align 4
+  %118 = srem i32 %116, %117
+  store i32 %118, ptr %6, align 4
+  %119 = load i32, ptr %3, align 4
+  store i32 %119, ptr %4, align 4
+  %120 = load i32, ptr %6, align 4
+  store i32 %120, ptr %3, align 4
+  %121 = load i32, ptr %3, align 4
+  %122 = icmp sgt i32 %121, 0
+  br i1 %122, label %123, label %153
+
+123:                                              ; preds = %115
+  %124 = load i32, ptr %4, align 4
+  %125 = load i32, ptr %3, align 4
+  %126 = srem i32 %124, %125
+  store i32 %126, ptr %6, align 4
+  %127 = load i32, ptr %3, align 4
+  store i32 %127, ptr %4, align 4
+  %128 = load i32, ptr %6, align 4
+  store i32 %128, ptr %3, align 4
+  %129 = load i32, ptr %3, align 4
+  %130 = icmp sgt i32 %129, 0
+  br i1 %130, label %131, label %153
+
+131:                                              ; preds = %123
+  %132 = load i32, ptr %4, align 4
+  %133 = load i32, ptr %3, align 4
+  %134 = srem i32 %132, %133
+  store i32 %134, ptr %6, align 4
+  %135 = load i32, ptr %3, align 4
+  store i32 %135, ptr %4, align 4
+  %136 = load i32, ptr %6, align 4
+  store i32 %136, ptr %3, align 4
+  %137 = load i32, ptr %3, align 4
+  %138 = icmp sgt i32 %137, 0
+  br i1 %138, label %139, label %153
+
+139:                                              ; preds = %131
+  %140 = load i32, ptr %4, align 4
+  %141 = load i32, ptr %3, align 4
+  %142 = srem i32 %140, %141
+  store i32 %142, ptr %6, align 4
+  %143 = load i32, ptr %3, align 4
+  store i32 %143, ptr %4, align 4
+  %144 = load i32, ptr %6, align 4
+  store i32 %144, ptr %3, align 4
+  %145 = load i32, ptr %3, align 4
+  %146 = icmp sgt i32 %145, 0
+  br i1 %146, label %147, label %153
+
+147:                                              ; preds = %139
+  %148 = load i32, ptr %4, align 4
+  %149 = load i32, ptr %3, align 4
+  %150 = srem i32 %148, %149
+  store i32 %150, ptr %6, align 4
+  %151 = load i32, ptr %3, align 4
+  store i32 %151, ptr %4, align 4
+  %152 = load i32, ptr %6, align 4
+  store i32 %152, ptr %3, align 4
+  br label %24, !llvm.loop !8
+
+153:                                              ; preds = %139, %131, %123, %115, %107, %99, %91, %83, %75, %67, %59, %51, %43, %35, %27, %24
+  %154 = load i32, ptr %4, align 4
+  %155 = call i32 (ptr, ...) @printf(ptr noundef @.str, i32 noundef %154)
+  br label %156
+
+156:                                              ; preds = %153, %20
+  ret void
+}
+
+declare i32 @printf(ptr noundef, ...) #1
+
+attributes #0 = { noinline nounwind uwtable "frame-pointer"="all" "min-legal-vector-width"="0" "no-trapping-math"="true" "stack-protector-buffer-size"="8" "target-cpu"="x86-64" "target-features"="+cmov,+cx8,+fxsr,+mmx,+sse,+sse2,+x87" "tune-cpu"="generic" }
+attributes #1 = { "frame-pointer"="all" "no-trapping-math"="true" "stack-protector-buffer-size"="8" "target-cpu"="x86-64" "target-features"="+cmov,+cx8,+fxsr,+mmx,+sse,+sse2,+x87" "tune-cpu"="generic" }
+
+!llvm.module.flags = !{!0, !1, !2, !3, !4}
+!llvm.ident = !{!5}
+
+!0 = !{i32 1, !"wchar_size", i32 4}
+!1 = !{i32 8, !"PIC Level", i32 2}
+!2 = !{i32 7, !"PIE Level", i32 2}
+!3 = !{i32 7, !"uwtable", i32 2}
+!4 = !{i32 7, !"frame-pointer", i32 2}
+!5 = !{!"clang version 18.1.8 (https://github.com/llvm/llvm-project.git 3b5b5c1ec4a3095ab096dd780e84d7ab81f3d7ff)"}
+!6 = distinct !{!6, !7}
+!7 = !{!"llvm.loop.mustprogress"}
+!8 = distinct !{!8, !7}

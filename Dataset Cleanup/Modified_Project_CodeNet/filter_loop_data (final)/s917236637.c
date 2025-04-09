@@ -1,3 +1,4 @@
+#include <string.h>
 #include <stdio.h>
 
 int compare_long(const void *a, const void *b) {

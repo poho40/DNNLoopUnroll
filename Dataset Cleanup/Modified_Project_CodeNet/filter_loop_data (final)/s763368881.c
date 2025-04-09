@@ -1,3 +1,4 @@
+#include <string.h>
 #include <stdio.h>
 
 void swap(int *swapa, int *swapb);

@@ -13,10 +13,10 @@ define dso_local i32 @main() #0 {
   store i32 0, ptr %3, align 4
   br label %5
 
-5:                                                ; preds = %12, %0
+5:                                                ; preds = %21, %0
   %6 = load i32, ptr %3, align 4
   %7 = icmp slt i32 %6, 1000
-  br i1 %7, label %8, label %15
+  br i1 %7, label %8, label %24
 
 8:                                                ; preds = %5
   %9 = load i32, ptr %3, align 4
@@ -29,33 +29,33 @@ define dso_local i32 @main() #0 {
   %13 = load i32, ptr %3, align 4
   %14 = add nsw i32 %13, 1
   store i32 %14, ptr %3, align 4
+  %15 = load i32, ptr %3, align 4
+  %16 = icmp slt i32 %15, 1000
+  br i1 %16, label %17, label %24
+
+17:                                               ; preds = %12
+  %18 = load i32, ptr %3, align 4
+  %19 = sext i32 %18 to i64
+  %20 = getelementptr inbounds [1000 x i32], ptr %2, i64 0, i64 %19
+  store i32 0, ptr %20, align 4
+  br label %21
+
+21:                                               ; preds = %17
+  %22 = load i32, ptr %3, align 4
+  %23 = add nsw i32 %22, 1
+  store i32 %23, ptr %3, align 4
   br label %5, !llvm.loop !6
 
-15:                                               ; preds = %5
+24:                                               ; preds = %12, %5
   store i32 0, ptr %3, align 4
-  br label %16
+  br label %25
 
-16:                                               ; preds = %32, %15
-  %17 = load i32, ptr %3, align 4
-  %18 = icmp slt i32 %17, 1000
-  br i1 %18, label %19, label %35
-
-19:                                               ; preds = %16
-  %20 = load i32, ptr %3, align 4
-  %21 = sext i32 %20 to i64
-  %22 = getelementptr inbounds [1000 x i32], ptr %2, i64 0, i64 %21
-  store i32 0, ptr %22, align 4
-  br label %23
-
-23:                                               ; preds = %19
-  %24 = load i32, ptr %3, align 4
-  %25 = add nsw i32 %24, 1
-  store i32 %25, ptr %3, align 4
+25:                                               ; preds = %32, %24
   %26 = load i32, ptr %3, align 4
   %27 = icmp slt i32 %26, 1000
   br i1 %27, label %28, label %35
 
-28:                                               ; preds = %23
+28:                                               ; preds = %25
   %29 = load i32, ptr %3, align 4
   %30 = sext i32 %29 to i64
   %31 = getelementptr inbounds [1000 x i32], ptr %2, i64 0, i64 %30
@@ -66,9 +66,9 @@ define dso_local i32 @main() #0 {
   %33 = load i32, ptr %3, align 4
   %34 = add nsw i32 %33, 1
   store i32 %34, ptr %3, align 4
-  br label %16, !llvm.loop !8
+  br label %25, !llvm.loop !8
 
-35:                                               ; preds = %23, %16
+35:                                               ; preds = %25
   %36 = load i32, ptr %1, align 4
   ret i32 %36
 }

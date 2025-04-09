@@ -1,3 +1,5 @@
+#include <stdio.h>
+#include <string.h>
 int main(void)
 {
     int a, b, c[1000], d;

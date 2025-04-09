@@ -1,3 +1,5 @@
+#include <stdio.h>
+#include <string.h>
 /* 134c */
 #include<stdio.h>
 #include<math.h>

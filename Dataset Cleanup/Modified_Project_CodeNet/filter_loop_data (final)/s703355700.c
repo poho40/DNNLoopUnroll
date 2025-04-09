@@ -1,3 +1,5 @@
+#include <stdio.h>
+#include <string.h>
 #include<stdio.h>
 int maxi(int a,int b){
   if(a>b) return a;

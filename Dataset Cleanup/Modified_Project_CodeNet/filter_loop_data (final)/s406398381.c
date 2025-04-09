@@ -1,3 +1,4 @@
+#include <string.h>
 #include <stdio.h>
 #define ld long long int
 int adddig(ld a, ld b);

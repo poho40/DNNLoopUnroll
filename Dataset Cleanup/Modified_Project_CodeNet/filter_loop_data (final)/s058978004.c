@@ -1,3 +1,4 @@
+#include <string.h>
 #include <stdio.h>
 int main(void) {
 	int i, j, n, m[200000], a[200000];

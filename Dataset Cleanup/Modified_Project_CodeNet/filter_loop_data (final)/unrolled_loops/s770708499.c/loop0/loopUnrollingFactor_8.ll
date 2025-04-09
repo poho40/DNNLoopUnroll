@@ -1,0 +1,395 @@
+; ModuleID = 's770708499.ls.bc'
+source_filename = "s770708499.c"
+target datalayout = "e-m:e-p270:32:32-p271:32:32-p272:64:64-i64:64-i128:128-f80:128-n8:16:32:64-S128"
+target triple = "x86_64-unknown-linux-gnu"
+
+@.str = private unnamed_addr constant [4 x i8] c"%d\0A\00", align 1
+
+; Function Attrs: noinline nounwind uwtable
+define dso_local i32 @main() #0 {
+  %1 = alloca i32, align 4
+  %2 = alloca i32, align 4
+  %3 = alloca i32, align 4
+  %4 = alloca i32, align 4
+  %5 = alloca i32, align 4
+  store i32 0, ptr %1, align 4
+  store i32 1, ptr %2, align 4
+  store i32 20, ptr %3, align 4
+  br label %6
+
+6:                                                ; preds = %182, %0
+  %7 = load i32, ptr %2, align 4
+  %8 = icmp ne i32 %7, -1
+  br i1 %8, label %9, label %12
+
+9:                                                ; preds = %6
+  %10 = load i32, ptr %3, align 4
+  %11 = icmp ne i32 %10, -1
+  br label %12
+
+12:                                               ; preds = %9, %6
+  %13 = phi i1 [ false, %6 ], [ %11, %9 ]
+  br i1 %13, label %14, label %191
+
+14:                                               ; preds = %12
+  %15 = load i32, ptr %2, align 4
+  %16 = load i32, ptr %3, align 4
+  %17 = add nsw i32 %15, %16
+  store i32 %17, ptr %4, align 4
+  store i32 10, ptr %5, align 4
+  store i32 0, ptr %5, align 4
+  br label %18
+
+18:                                               ; preds = %24, %14
+  %19 = load i32, ptr %4, align 4
+  %20 = icmp ne i32 %19, 0
+  br i1 %20, label %21, label %27
+
+21:                                               ; preds = %18
+  %22 = load i32, ptr %4, align 4
+  %23 = sdiv i32 %22, 10
+  store i32 %23, ptr %4, align 4
+  br label %24
+
+24:                                               ; preds = %21
+  %25 = load i32, ptr %5, align 4
+  %26 = add nsw i32 %25, 1
+  store i32 %26, ptr %5, align 4
+  br label %18, !llvm.loop !6
+
+27:                                               ; preds = %18
+  %28 = load i32, ptr %5, align 4
+  %29 = call i32 (ptr, ...) @printf(ptr noundef @.str, i32 noundef %28)
+  store i32 12, ptr %2, align 4
+  store i32 75, ptr %3, align 4
+  %30 = load i32, ptr %2, align 4
+  %31 = icmp ne i32 %30, -1
+  br i1 %31, label %32, label %35
+
+32:                                               ; preds = %27
+  %33 = load i32, ptr %3, align 4
+  %34 = icmp ne i32 %33, -1
+  br label %35
+
+35:                                               ; preds = %32, %27
+  %36 = phi i1 [ false, %27 ], [ %34, %32 ]
+  br i1 %36, label %37, label %191
+
+37:                                               ; preds = %35
+  %38 = load i32, ptr %2, align 4
+  %39 = load i32, ptr %3, align 4
+  %40 = add nsw i32 %38, %39
+  store i32 %40, ptr %4, align 4
+  store i32 10, ptr %5, align 4
+  store i32 0, ptr %5, align 4
+  br label %41
+
+41:                                               ; preds = %52, %37
+  %42 = load i32, ptr %4, align 4
+  %43 = icmp ne i32 %42, 0
+  br i1 %43, label %49, label %44
+
+44:                                               ; preds = %41
+  %45 = load i32, ptr %5, align 4
+  %46 = call i32 (ptr, ...) @printf(ptr noundef @.str, i32 noundef %45)
+  store i32 12, ptr %2, align 4
+  store i32 75, ptr %3, align 4
+  %47 = load i32, ptr %2, align 4
+  %48 = icmp ne i32 %47, -1
+  br i1 %48, label %55, label %58
+
+49:                                               ; preds = %41
+  %50 = load i32, ptr %4, align 4
+  %51 = sdiv i32 %50, 10
+  store i32 %51, ptr %4, align 4
+  br label %52
+
+52:                                               ; preds = %49
+  %53 = load i32, ptr %5, align 4
+  %54 = add nsw i32 %53, 1
+  store i32 %54, ptr %5, align 4
+  br label %41, !llvm.loop !6
+
+55:                                               ; preds = %44
+  %56 = load i32, ptr %3, align 4
+  %57 = icmp ne i32 %56, -1
+  br label %58
+
+58:                                               ; preds = %55, %44
+  %59 = phi i1 [ false, %44 ], [ %57, %55 ]
+  br i1 %59, label %60, label %191
+
+60:                                               ; preds = %58
+  %61 = load i32, ptr %2, align 4
+  %62 = load i32, ptr %3, align 4
+  %63 = add nsw i32 %61, %62
+  store i32 %63, ptr %4, align 4
+  store i32 10, ptr %5, align 4
+  store i32 0, ptr %5, align 4
+  br label %64
+
+64:                                               ; preds = %75, %60
+  %65 = load i32, ptr %4, align 4
+  %66 = icmp ne i32 %65, 0
+  br i1 %66, label %72, label %67
+
+67:                                               ; preds = %64
+  %68 = load i32, ptr %5, align 4
+  %69 = call i32 (ptr, ...) @printf(ptr noundef @.str, i32 noundef %68)
+  store i32 12, ptr %2, align 4
+  store i32 75, ptr %3, align 4
+  %70 = load i32, ptr %2, align 4
+  %71 = icmp ne i32 %70, -1
+  br i1 %71, label %78, label %81
+
+72:                                               ; preds = %64
+  %73 = load i32, ptr %4, align 4
+  %74 = sdiv i32 %73, 10
+  store i32 %74, ptr %4, align 4
+  br label %75
+
+75:                                               ; preds = %72
+  %76 = load i32, ptr %5, align 4
+  %77 = add nsw i32 %76, 1
+  store i32 %77, ptr %5, align 4
+  br label %64, !llvm.loop !6
+
+78:                                               ; preds = %67
+  %79 = load i32, ptr %3, align 4
+  %80 = icmp ne i32 %79, -1
+  br label %81
+
+81:                                               ; preds = %78, %67
+  %82 = phi i1 [ false, %67 ], [ %80, %78 ]
+  br i1 %82, label %83, label %191
+
+83:                                               ; preds = %81
+  %84 = load i32, ptr %2, align 4
+  %85 = load i32, ptr %3, align 4
+  %86 = add nsw i32 %84, %85
+  store i32 %86, ptr %4, align 4
+  store i32 10, ptr %5, align 4
+  store i32 0, ptr %5, align 4
+  br label %87
+
+87:                                               ; preds = %98, %83
+  %88 = load i32, ptr %4, align 4
+  %89 = icmp ne i32 %88, 0
+  br i1 %89, label %95, label %90
+
+90:                                               ; preds = %87
+  %91 = load i32, ptr %5, align 4
+  %92 = call i32 (ptr, ...) @printf(ptr noundef @.str, i32 noundef %91)
+  store i32 12, ptr %2, align 4
+  store i32 75, ptr %3, align 4
+  %93 = load i32, ptr %2, align 4
+  %94 = icmp ne i32 %93, -1
+  br i1 %94, label %101, label %104
+
+95:                                               ; preds = %87
+  %96 = load i32, ptr %4, align 4
+  %97 = sdiv i32 %96, 10
+  store i32 %97, ptr %4, align 4
+  br label %98
+
+98:                                               ; preds = %95
+  %99 = load i32, ptr %5, align 4
+  %100 = add nsw i32 %99, 1
+  store i32 %100, ptr %5, align 4
+  br label %87, !llvm.loop !6
+
+101:                                              ; preds = %90
+  %102 = load i32, ptr %3, align 4
+  %103 = icmp ne i32 %102, -1
+  br label %104
+
+104:                                              ; preds = %101, %90
+  %105 = phi i1 [ false, %90 ], [ %103, %101 ]
+  br i1 %105, label %106, label %191
+
+106:                                              ; preds = %104
+  %107 = load i32, ptr %2, align 4
+  %108 = load i32, ptr %3, align 4
+  %109 = add nsw i32 %107, %108
+  store i32 %109, ptr %4, align 4
+  store i32 10, ptr %5, align 4
+  store i32 0, ptr %5, align 4
+  br label %110
+
+110:                                              ; preds = %121, %106
+  %111 = load i32, ptr %4, align 4
+  %112 = icmp ne i32 %111, 0
+  br i1 %112, label %118, label %113
+
+113:                                              ; preds = %110
+  %114 = load i32, ptr %5, align 4
+  %115 = call i32 (ptr, ...) @printf(ptr noundef @.str, i32 noundef %114)
+  store i32 12, ptr %2, align 4
+  store i32 75, ptr %3, align 4
+  %116 = load i32, ptr %2, align 4
+  %117 = icmp ne i32 %116, -1
+  br i1 %117, label %124, label %127
+
+118:                                              ; preds = %110
+  %119 = load i32, ptr %4, align 4
+  %120 = sdiv i32 %119, 10
+  store i32 %120, ptr %4, align 4
+  br label %121
+
+121:                                              ; preds = %118
+  %122 = load i32, ptr %5, align 4
+  %123 = add nsw i32 %122, 1
+  store i32 %123, ptr %5, align 4
+  br label %110, !llvm.loop !6
+
+124:                                              ; preds = %113
+  %125 = load i32, ptr %3, align 4
+  %126 = icmp ne i32 %125, -1
+  br label %127
+
+127:                                              ; preds = %124, %113
+  %128 = phi i1 [ false, %113 ], [ %126, %124 ]
+  br i1 %128, label %129, label %191
+
+129:                                              ; preds = %127
+  %130 = load i32, ptr %2, align 4
+  %131 = load i32, ptr %3, align 4
+  %132 = add nsw i32 %130, %131
+  store i32 %132, ptr %4, align 4
+  store i32 10, ptr %5, align 4
+  store i32 0, ptr %5, align 4
+  br label %133
+
+133:                                              ; preds = %144, %129
+  %134 = load i32, ptr %4, align 4
+  %135 = icmp ne i32 %134, 0
+  br i1 %135, label %141, label %136
+
+136:                                              ; preds = %133
+  %137 = load i32, ptr %5, align 4
+  %138 = call i32 (ptr, ...) @printf(ptr noundef @.str, i32 noundef %137)
+  store i32 12, ptr %2, align 4
+  store i32 75, ptr %3, align 4
+  %139 = load i32, ptr %2, align 4
+  %140 = icmp ne i32 %139, -1
+  br i1 %140, label %147, label %150
+
+141:                                              ; preds = %133
+  %142 = load i32, ptr %4, align 4
+  %143 = sdiv i32 %142, 10
+  store i32 %143, ptr %4, align 4
+  br label %144
+
+144:                                              ; preds = %141
+  %145 = load i32, ptr %5, align 4
+  %146 = add nsw i32 %145, 1
+  store i32 %146, ptr %5, align 4
+  br label %133, !llvm.loop !6
+
+147:                                              ; preds = %136
+  %148 = load i32, ptr %3, align 4
+  %149 = icmp ne i32 %148, -1
+  br label %150
+
+150:                                              ; preds = %147, %136
+  %151 = phi i1 [ false, %136 ], [ %149, %147 ]
+  br i1 %151, label %152, label %191
+
+152:                                              ; preds = %150
+  %153 = load i32, ptr %2, align 4
+  %154 = load i32, ptr %3, align 4
+  %155 = add nsw i32 %153, %154
+  store i32 %155, ptr %4, align 4
+  store i32 10, ptr %5, align 4
+  store i32 0, ptr %5, align 4
+  br label %156
+
+156:                                              ; preds = %167, %152
+  %157 = load i32, ptr %4, align 4
+  %158 = icmp ne i32 %157, 0
+  br i1 %158, label %164, label %159
+
+159:                                              ; preds = %156
+  %160 = load i32, ptr %5, align 4
+  %161 = call i32 (ptr, ...) @printf(ptr noundef @.str, i32 noundef %160)
+  store i32 12, ptr %2, align 4
+  store i32 75, ptr %3, align 4
+  %162 = load i32, ptr %2, align 4
+  %163 = icmp ne i32 %162, -1
+  br i1 %163, label %170, label %173
+
+164:                                              ; preds = %156
+  %165 = load i32, ptr %4, align 4
+  %166 = sdiv i32 %165, 10
+  store i32 %166, ptr %4, align 4
+  br label %167
+
+167:                                              ; preds = %164
+  %168 = load i32, ptr %5, align 4
+  %169 = add nsw i32 %168, 1
+  store i32 %169, ptr %5, align 4
+  br label %156, !llvm.loop !6
+
+170:                                              ; preds = %159
+  %171 = load i32, ptr %3, align 4
+  %172 = icmp ne i32 %171, -1
+  br label %173
+
+173:                                              ; preds = %170, %159
+  %174 = phi i1 [ false, %159 ], [ %172, %170 ]
+  br i1 %174, label %175, label %191
+
+175:                                              ; preds = %173
+  %176 = load i32, ptr %2, align 4
+  %177 = load i32, ptr %3, align 4
+  %178 = add nsw i32 %176, %177
+  store i32 %178, ptr %4, align 4
+  store i32 10, ptr %5, align 4
+  store i32 0, ptr %5, align 4
+  br label %179
+
+179:                                              ; preds = %188, %175
+  %180 = load i32, ptr %4, align 4
+  %181 = icmp ne i32 %180, 0
+  br i1 %181, label %185, label %182
+
+182:                                              ; preds = %179
+  %183 = load i32, ptr %5, align 4
+  %184 = call i32 (ptr, ...) @printf(ptr noundef @.str, i32 noundef %183)
+  store i32 12, ptr %2, align 4
+  store i32 75, ptr %3, align 4
+  br label %6, !llvm.loop !8
+
+185:                                              ; preds = %179
+  %186 = load i32, ptr %4, align 4
+  %187 = sdiv i32 %186, 10
+  store i32 %187, ptr %4, align 4
+  br label %188
+
+188:                                              ; preds = %185
+  %189 = load i32, ptr %5, align 4
+  %190 = add nsw i32 %189, 1
+  store i32 %190, ptr %5, align 4
+  br label %179, !llvm.loop !6
+
+191:                                              ; preds = %173, %150, %127, %104, %81, %58, %35, %12
+  ret i32 0
+}
+
+declare i32 @printf(ptr noundef, ...) #1
+
+attributes #0 = { noinline nounwind uwtable "frame-pointer"="all" "min-legal-vector-width"="0" "no-trapping-math"="true" "stack-protector-buffer-size"="8" "target-cpu"="x86-64" "target-features"="+cmov,+cx8,+fxsr,+mmx,+sse,+sse2,+x87" "tune-cpu"="generic" }
+attributes #1 = { "frame-pointer"="all" "no-trapping-math"="true" "stack-protector-buffer-size"="8" "target-cpu"="x86-64" "target-features"="+cmov,+cx8,+fxsr,+mmx,+sse,+sse2,+x87" "tune-cpu"="generic" }
+
+!llvm.module.flags = !{!0, !1, !2, !3, !4}
+!llvm.ident = !{!5}
+
+!0 = !{i32 1, !"wchar_size", i32 4}
+!1 = !{i32 8, !"PIC Level", i32 2}
+!2 = !{i32 7, !"PIE Level", i32 2}
+!3 = !{i32 7, !"uwtable", i32 2}
+!4 = !{i32 7, !"frame-pointer", i32 2}
+!5 = !{!"clang version 18.1.8 (https://github.com/llvm/llvm-project.git 3b5b5c1ec4a3095ab096dd780e84d7ab81f3d7ff)"}
+!6 = distinct !{!6, !7}
+!7 = !{!"llvm.loop.mustprogress"}
+!8 = distinct !{!8, !7}

@@ -1,3 +1,4 @@
+#include <string.h>
 /* Reversing Numbers */
 #include <stdio.h>
 

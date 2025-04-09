@@ -1,3 +1,4 @@
+#include <string.h>
 #include <stdio.h>
 #define MAX 11
 int main(void) {

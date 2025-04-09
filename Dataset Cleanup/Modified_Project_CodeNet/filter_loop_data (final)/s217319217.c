@@ -1,3 +1,4 @@
+#include <string.h>
 #include <stdio.h>
 int main(void){
     int N,i,j,big=0,next = 0,n=1,num,m = 0;

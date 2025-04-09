@@ -1,3 +1,5 @@
+#include <stdio.h>
+#include <string.h>
 main(){
   int a,b,y,c;
 a = 83;

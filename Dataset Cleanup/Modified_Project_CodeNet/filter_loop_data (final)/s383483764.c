@@ -1,3 +1,4 @@
+#include <string.h>
 #include <stdio.h>
 int main(){
     int a[100], max=0, b=0, c=0;

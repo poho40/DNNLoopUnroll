@@ -1,3 +1,4 @@
+#include <string.h>
 /* Coached by Dukkha */
 #include <stdio.h>
 

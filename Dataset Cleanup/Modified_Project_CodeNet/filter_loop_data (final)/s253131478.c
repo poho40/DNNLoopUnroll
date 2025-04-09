@@ -1,3 +1,4 @@
+#include <string.h>
 #include <stdio.h>
 
 long long int FuncPutGCD(const long long int a, const long long int b);

@@ -1,3 +1,4 @@
+#include <string.h>
 /*  ex9_1
     kento_titech*/
 #include <stdio.h>

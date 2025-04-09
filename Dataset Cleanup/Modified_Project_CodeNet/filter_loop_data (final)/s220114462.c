@@ -1,3 +1,4 @@
+#include <string.h>
 #include <stdio.h>
 int main(){
 	int a,b[100],n,i;

@@ -1,3 +1,4 @@
+#include <string.h>
 /*	ex9_1
 	suzuto	*/
 

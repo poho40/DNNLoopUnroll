@@ -1,3 +1,5 @@
+#include <stdio.h>
+#include <string.h>
 #include<stdio.h>
 #include<string.h>
 char x_x,s[15],ans[15];

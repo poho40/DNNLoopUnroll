@@ -1,3 +1,5 @@
+#include <stdio.h>
+#include <string.h>
 #include<stdio.h>
 int main(){
 	int a,i=0,u=0,e=0,o,yama[100];

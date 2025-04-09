@@ -4,7 +4,7 @@
 # e.g. sh run.sh hw2correct1
 
 # ACTION NEEDED: If the path is different, please update it here.
-PATH2LIB="/n/eecs583b/home/rohitsar/LoopUnrolling/build/FunctionNamePass/FunctionNamePass.so"        # Specify your build directory in the project
+PATH2LIB="/n/eecs583a/home/rjutur/DNNLoopUnroll/LoopUnrolling/build/FunctionNamePass/FunctionNamePass.so"        # Specify your build directory in the project
 
 PASS=func-name
 # Delete outputs from previous runs. Update this when you want to retain some files.
@@ -52,3 +52,11 @@ opt -load-pass-plugin="${PATH2LIB}" -passes="${PASS}" ${1}.ls.bc -o ${1}.fplicm.
 
 # Cleanup: Remove this if you want to retain the created files (for example, for viz.sh). 
 # rm -f default.profraw *_prof *_fplicm *.bc *.profdata *_output *.ll
+
+
+
+#COMMAND
+#for name in $(find "/n/eecs583a/home/rjutur/DNNLoopUnroll/Dataset Cleanup/Modified_Project_CodeNet/filter_loop_data (final)/unrolled_loops" -mindepth 1 -maxdepth 1 -type d -exec basename {} \; | sed 's/\.c$//'); do
+#  echo "Running ./run.sh on: $name"
+#  ./run.sh "$name"
+#done

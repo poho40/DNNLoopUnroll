@@ -1,3 +1,4 @@
+#include <string.h>
 #include <stdio.h>
 int main(){
     int n,a[1000]={0},tmp,i,j,k;

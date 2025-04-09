@@ -1,5 +1,7 @@
+#include <stdio.h>
+#include <string.h>
 #include<stdio.h>
-main()
+int main()
 {
   int a,b,i,j,k;
 a = 84;

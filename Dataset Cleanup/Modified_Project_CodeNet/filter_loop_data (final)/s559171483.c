@@ -1,3 +1,4 @@
+#include <string.h>
 #include <stdio.h>
 #define FOR(i,L,R) for (int i = L; i < R; i++)
 #define READ(n) int (n); scanf("%d",&(n))

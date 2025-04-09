@@ -1,3 +1,5 @@
+#include <stdio.h>
+#include <string.h>
 #include<stdio.h>
 #define SWAP(a,b)({a ^= b; b ^= a; a ^= b;})
 

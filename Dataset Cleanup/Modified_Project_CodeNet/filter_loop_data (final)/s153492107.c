@@ -1,3 +1,4 @@
+#include <string.h>
 /*
  *	Argorithms and Data Structures
  *	Lectuire 1

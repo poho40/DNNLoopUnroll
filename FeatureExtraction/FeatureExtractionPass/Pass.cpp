@@ -11,6 +11,7 @@
 #include "llvm/Passes/PassBuilder.h"
 #include "llvm/Support/raw_ostream.h"
 
+#include <fstream>
 #include <limits>
 
 using namespace llvm;
@@ -69,7 +70,7 @@ struct LoopUnrollingFeaturePass : public PassInfoMixin<LoopUnrollingFeaturePass>
   }
 
   // Analyze a loop and print its features.
-  void analyzeLoop(Loop *L) {
+  void analyzeLoop(Loop *L, int loopNumber, Function &F) {
     // Feature: Loop nesting depth.
     unsigned loopNestDepth = L->getLoopDepth();
     errs() << "Loop nesting depth: " << loopNestDepth << "\n";
@@ -202,10 +203,45 @@ struct LoopUnrollingFeaturePass : public PassInfoMixin<LoopUnrollingFeaturePass>
     errs() << "Number of basic blocks in loop: " << numNodes << "\n";
     errs() << "Cyclomatic complexity: " << cyclomaticComplexity << "\n";
 
-    // Recursively analyze any nested subloops.
-    for (Loop *SubLoop : L->getSubLoops()) {
-      analyzeLoop(SubLoop);
+
+    std::ofstream outFile("/n/eecs583a/home/rjutur/DNNLoopUnroll/FeatureExtraction/loop_features.csv", std::ios::app); // Open in append mode
+    if (outFile.is_open()) {
+      // outFile << "File," << "LoopNumber,"
+      //   << "LoopNestingDepth,ExitBranches,InstCount,ArrayAccesses,"
+      //   << "CompToZero,CompToConst,IntComp,FloatComp,DoubleComp,"
+      //   << "PtrComp,NullPtrComp,MemAccesses,Expressions,IfStmts,"
+      //   << "FuncCalls,Assignments,MinArrSize,MaxArrSize,"
+        // << "NumBlocks,CyclomaticComplexity\n";
+      outFile << F.getParent()->getSourceFileName() << ","
+        << loopNumber << ","
+        << loopNestDepth << ","
+        << exitBranchCount << ","
+        << instCount << ","
+        << arrayAccessCount << ","
+        << comparisonToZeroCount << ","
+        << comparisonToConstantCount << ","
+        << intCmpCount << ","
+        << floatCmpCount << ","
+        << doubleCmpCount << ","
+        << pointerCmpCount << ","
+        << nullPointerCmpCount << ","
+        << memAccessCount << ","
+        << expressionCount << ","
+        << ifStmtCount << ","
+        << functionCallCount << ","
+        << assignmentCount << ","
+        << minArrSize << ","
+        << maxArrSize << ","
+        << numNodes << ","
+        << cyclomaticComplexity << "\n";
+    } else {
+      errs() << "Error writing to file: loop_features.csv" << "\n";
     }
+
+    // Recursively analyze any nested subloops.
+    // for (Loop *SubLoop : L->getSubLoops()) {
+    //   analyzeLoop(SubLoop);
+    // }
   }
 
   // Main pass entry point.
@@ -229,8 +265,10 @@ struct LoopUnrollingFeaturePass : public PassInfoMixin<LoopUnrollingFeaturePass>
     errs() << "Function has " << totalLoops << " loops\n";
 
     // Process each loop in the function.
-    for (Loop *L : LI) {
-      analyzeLoop(L);
+    int loopNumber = 0;
+    for (Loop *L : LI.getLoopsInPreorder()) {
+      analyzeLoop(L, loopNumber, F);
+      loopNumber++;
     }
 
     errs() << "Pass has changed\n";
