@@ -7,6 +7,9 @@ import torch.optim as optim
 from torch.utils.data import DataLoader, TensorDataset, random_split
 from sklearn.preprocessing import StandardScaler
 import numpy as np
+from collections import Counter
+from sklearn.model_selection import StratifiedShuffleSplit
+from torch.utils.data import Subset
 
 # ---------- Parameters ----------
 input_file = "../LoopUnrolling/results.csv"
@@ -14,7 +17,7 @@ loop_info_file = "../FeatureExtraction/loop_features.csv"
 input_size = None  # Will infer from data
 num_classes = None # Will infer from unique labels
 batch_size = 32
-num_epochs = 20
+num_epochs = 40
 learning_rate = 0.001
 val_split = 0.2
 
@@ -65,15 +68,27 @@ X = scaler.fit_transform(X)
 X_tensor = torch.tensor(X)
 y_tensor = torch.tensor(y)
 dataset = TensorDataset(X_tensor, y_tensor)
-val_len = int(len(dataset) * val_split)
-train_len = len(dataset) - val_len
-train_dataset, val_dataset = random_split(dataset, [train_len, val_len])
+# val_len = int(len(dataset) * val_split)
+# train_len = len(dataset) - val_len
+# train_dataset, val_dataset = random_split(dataset, [train_len, val_len])
+# train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
+# val_loader = DataLoader(val_dataset, batch_size=batch_size)
+X_np = X_tensor.numpy()
+y_np = y_tensor.numpy()
+
+# Use stratified splitter
+split = StratifiedShuffleSplit(n_splits=1, test_size=val_split, random_state=42)
+for train_idx, val_idx in split.split(X_np, y_np):
+    train_dataset = Subset(dataset, train_idx)
+    val_dataset = Subset(dataset, val_idx)
+
+# DataLoaders
 train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
 val_loader = DataLoader(val_dataset, batch_size=batch_size)
 
 # ---------- Define Model ----------
 class SimpleClassifier(nn.Module):
-    def __init__(self, input_size, num_classes, hidden_size=2):
+    def __init__(self, input_size, num_classes, hidden_size=8):
         super(SimpleClassifier, self).__init__()
         self.fc1 = nn.Linear(input_size, hidden_size)
         self.fc2 = nn.Linear(hidden_size, hidden_size)
@@ -85,7 +100,16 @@ class SimpleClassifier(nn.Module):
         return self.output(x)
 
 model = SimpleClassifier(input_size=input_size, num_classes=num_classes)
-criterion = nn.CrossEntropyLoss()
+# Count class frequencies
+class_counts = Counter(y)
+total_count = sum(class_counts.values())
+
+# Compute class weights inversely proportional to frequency
+class_weights = [total_count / class_counts[i] for i in range(num_classes)]
+class_weights_tensor = torch.tensor(class_weights, dtype=torch.float32)
+
+# Pass it to the loss function
+criterion = nn.CrossEntropyLoss(weight=class_weights_tensor)
 optimizer = optim.Adam(model.parameters(), lr=learning_rate)
 
 # ---------- Training + Validation Loop ----------
