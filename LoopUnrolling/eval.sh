@@ -6,10 +6,12 @@ OUTPUT_FILE="best_time.txt"
 CSV_FILE="results.csv"
 
 # Iterate over each loop unrolling factor subdirectory
+rm results.csv
 for loop_factor_dir in "$UNROLL_DIR"/*/; do
     # Extract the unrolling factor (e.g., "2", "4", etc.) from the directory name
 
     # Iterate over each .ll file inside the subdirectory
+    SKIP_DIR=false
     for loop_dir in "$loop_factor_dir"*/; do
         # Check if there are no .ll files (skip empty directories)
         # echo "Processing file: $loop_dir"
@@ -31,11 +33,32 @@ for loop_factor_dir in "$UNROLL_DIR"/*/; do
 
             # Run the command 5 times and accumulate the time
             for i in $(seq 1 $NUM_RUNS); do
-                EXEC_TIME=$( { /usr/bin/time -f "%e" lli "$ll_file" > /dev/null; } 2>&1 )
-                TOTAL_TIME=$(echo "$TOTAL_TIME + $EXEC_TIME" | bc)
-                # echo "Run $i: $EXEC_TIME seconds"
-            done
+                START_TIME=$(date +%s.%N)
+                timeout 5s lli "$ll_file" > /dev/null
+                EXIT_CODE=$?
+                END_TIME=$(date +%s.%N)
+                # EXEC_TIME_OUTPUT=$( { /usr/bin/time -f "%e" timeout 30s lli "$ll_file" > /dev/null; } 2>&1 )
+                # EXIT_CODE=$?
 
+                if [ $EXIT_CODE -eq 124 ]; then
+                    echo "Timeout occurred for $ll_file on run $i — skipping directory."
+                    SKIP_DIR=true
+                    break 2  # exits both loops (run loop and ll_file loop)
+                elif [ $EXIT_CODE -ne 0 ]; then
+                    echo "Error occurred for $ll_file on run $i — skipping directory."
+                    SKIP_DIR=true
+                    break 2
+                else
+                    # EXEC_TIME=$EXEC_TIME_OUTPUT
+                    # TOTAL_TIME=$(echo "$TOTAL_TIME + $EXEC_TIME" | bc)
+                    EXEC_TIME=$(echo "$END_TIME - $START_TIME" | bc -l)
+                    TOTAL_TIME=$(echo "$TOTAL_TIME + $EXEC_TIME" | bc -l)
+                fi
+            done
+             if [ "$SKIP_DIR" = true ]; then
+                echo "Skipping directory: $loop_dir"
+                break
+            fi
             # Calculate the average execution time
             AVERAGE_TIME=$(echo "$TOTAL_TIME / $NUM_RUNS" | bc -l)
             # echo "Execution time: $AVERAGE_TIME seconds"
@@ -47,6 +70,10 @@ for loop_factor_dir in "$UNROLL_DIR"/*/; do
             fi
 
         done
+        if [ "$SKIP_DIR" = true ]; then
+            echo "Skipping directory: $loop_dir"
+            continue
+        fi
         if [ -n "$BEST_FILE" ]; then
             # echo "Best loop unrolling factor: $UNROLL_FACTOR with file: $BEST_FILE and time: $FASTEST_TIME"
             # echo "Directory: $loop_dir, Loop Factor: $BEST_FILE, Best Execution Time: $AVERAGE_TIME seconds" >> "$OUTPUT_FILE"

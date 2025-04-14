@@ -9,8 +9,8 @@ from sklearn.preprocessing import StandardScaler
 import numpy as np
 
 # ---------- Parameters ----------
-input_file = "results.csv"
-loop_info_file = "loop_features.csv"
+input_file = "../LoopUnrolling/results.csv"
+loop_info_file = "../FeatureExtraction/loop_features.csv"
 input_size = None  # Will infer from data
 num_classes = None # Will infer from unique labels
 batch_size = 32
@@ -73,7 +73,7 @@ val_loader = DataLoader(val_dataset, batch_size=batch_size)
 
 # ---------- Define Model ----------
 class SimpleClassifier(nn.Module):
-    def __init__(self, input_size, num_classes, hidden_size=64):
+    def __init__(self, input_size, num_classes, hidden_size=2):
         super(SimpleClassifier, self).__init__()
         self.fc1 = nn.Linear(input_size, hidden_size)
         self.fc2 = nn.Linear(hidden_size, hidden_size)
