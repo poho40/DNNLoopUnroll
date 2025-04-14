@@ -86,7 +86,7 @@ struct LoopUnrollingFeaturePass : public PassInfoMixin<LoopUnrollingFeaturePass>
     }
     errs() << "Loop has " << instCount << " instructions\n";
 
-    // Initialize counters for various features.
+    // Initialize counters for the existing features.
     unsigned arrayAccessCount = 0;
     unsigned comparisonToZeroCount = 0;
     unsigned comparisonToConstantCount = 0;
@@ -99,7 +99,22 @@ struct LoopUnrollingFeaturePass : public PassInfoMixin<LoopUnrollingFeaturePass>
     unsigned expressionCount = 0;
     unsigned ifStmtCount = 0;
     unsigned functionCallCount = 0;
-    unsigned assignmentCount = 0; 
+    unsigned assignmentCount = 0;
+
+    // --- New instruction-specific counters ---
+    unsigned addInstCount         = 0;  // add instructions
+    unsigned allocaInstCount      = 0;  // alloca instructions
+    unsigned andInstCount         = 0;  // and instructions
+    unsigned orInstCount          = 0;  // or instructions
+    unsigned bitcastInstCount     = 0;  // bitcast instructions
+    unsigned branchInstCount      = 0;  // branch instructions (both conditional & unconditional)
+    unsigned divisionInstCount    = 0;  // integer division instructions (SDiv/UDiv)
+    unsigned fMulInstCount        = 0;  // floating-point multiplication instructions
+    unsigned mulInstCount         = 0;  // integer multiplication instructions
+    unsigned loadInstCount        = 0;  // load instructions
+    unsigned phiInstCount         = 0;  // phi instructions
+    unsigned storeInstCount       = 0;  // store instructions
+    unsigned subInstCount         = 0;  // subtract instructions
 
     // Traverse each instruction in the loop's basic blocks.
     for (BasicBlock *BB : L->blocks()) {
@@ -112,9 +127,11 @@ struct LoopUnrollingFeaturePass : public PassInfoMixin<LoopUnrollingFeaturePass>
         if (auto *loadInst = dyn_cast<LoadInst>(&I)) {
           if (loadInst->getPointerOperand()->getType()->isPointerTy())
             arrayAccessCount++;
+          loadInstCount++; // New: count loads explicitly.
         } else if (auto *storeInst = dyn_cast<StoreInst>(&I)) {
           if (storeInst->getPointerOperand()->getType()->isPointerTy())
             arrayAccessCount++;
+          storeInstCount++; // New: count stores explicitly.
         }
 
         // Count expressions: Binary operators and comparison instructions.
@@ -126,6 +143,7 @@ struct LoopUnrollingFeaturePass : public PassInfoMixin<LoopUnrollingFeaturePass>
         if (auto *brInst = dyn_cast<BranchInst>(&I)) {
           if (brInst->isConditional() && (BB != L->getHeader()))
             ifStmtCount++;
+          branchInstCount++; // New: count every branch instruction.
         }
 
         // Count function calls.
@@ -164,22 +182,47 @@ struct LoopUnrollingFeaturePass : public PassInfoMixin<LoopUnrollingFeaturePass>
               nullPointerCmpCount++;
           }
         }
+
+        // --- New instruction-specific counters ---
+        if (auto *BO = dyn_cast<BinaryOperator>(&I)) {
+          switch (BO->getOpcode()) {
+            case Instruction::Add:    addInstCount++; break;
+            case Instruction::Sub:    subInstCount++; break;
+            case Instruction::Mul:    mulInstCount++; break;
+            case Instruction::FMul:   fMulInstCount++; break;
+            case Instruction::UDiv:
+            case Instruction::SDiv:   divisionInstCount++; break;
+            case Instruction::And:    andInstCount++; break;
+            case Instruction::Or:     orInstCount++; break;
+            default: break;
+          }
+        }
+        if (isa<AllocaInst>(&I)) {
+          allocaInstCount++;
+        }
+        if (isa<BitCastInst>(&I)) {
+          bitcastInstCount++;
+        }
+        if (isa<PHINode>(&I)) {
+          phiInstCount++;
+        }
       }
     }
 
-    errs() << "Loop has " << arrayAccessCount << " array accesses\n";
-    errs() << "Loop has " << comparisonToZeroCount << " comparisons to zero\n";
-    errs() << "Loop has " << comparisonToConstantCount << " comparisons to a constant\n";
-    errs() << "Loop has " << intCmpCount << " integer comparisons\n";
-    errs() << "Loop has " << floatCmpCount << " float comparisons\n";
-    errs() << "Loop has " << doubleCmpCount << " double comparisons\n";
-    errs() << "Loop has " << pointerCmpCount << " pointer comparisons\n";
-    errs() << "Loop has " << nullPointerCmpCount << " pointer comparisons to nullptr\n";
-    errs() << "Loop has " << memAccessCount << " memory accesses\n";
-    errs() << "Loop has " << expressionCount << " expressions\n";
-    errs() << "Loop has " << ifStmtCount << " if statements\n";
-    errs() << "Loop has " << functionCallCount << " function calls\n";
-    errs() << "Loop has " << assignmentCount << " assignments\n";
+    // Print the new instruction-specific features.
+    errs() << "Loop has " << addInstCount << " add instructions\n";
+    errs() << "Loop has " << allocaInstCount << " alloca instructions\n";
+    errs() << "Loop has " << andInstCount << " and instructions\n";
+    errs() << "Loop has " << orInstCount << " or instructions\n";
+    errs() << "Loop has " << bitcastInstCount << " bitcast instructions\n";
+    errs() << "Loop has " << branchInstCount << " branch instructions\n";
+    errs() << "Loop has " << divisionInstCount << " division instructions\n";
+    errs() << "Loop has " << fMulInstCount << " floating-point multiplication instructions\n";
+    errs() << "Loop has " << mulInstCount << " multiplication instructions\n";
+    errs() << "Loop has " << loadInstCount << " load instructions\n";
+    errs() << "Loop has " << phiInstCount << " phi instructions\n";
+    errs() << "Loop has " << storeInstCount << " store instructions\n";
+    errs() << "Loop has " << subInstCount << " subtract instructions\n";
 
     // Feature: Min/Max sizes of arrays referenced.
     auto [minArrSize, maxArrSize] = getMinMaxReferencedArraySizes(L);
@@ -203,15 +246,15 @@ struct LoopUnrollingFeaturePass : public PassInfoMixin<LoopUnrollingFeaturePass>
     errs() << "Number of basic blocks in loop: " << numNodes << "\n";
     errs() << "Cyclomatic complexity: " << cyclomaticComplexity << "\n";
 
-
-    std::ofstream outFile("/n/eecs583a/home/rjutur/DNNLoopUnroll/FeatureExtraction/loop_features.csv", std::ios::app); // Open in append mode
+    // Append features to CSV file.
+    std::ofstream outFile("/n/eecs583a/home/weijiawu/DNNLoopUnroll/FeatureExtraction/loop_features.csv", std::ios::app); // Open in append mode
     if (outFile.is_open()) {
-      // outFile << "File," << "LoopNumber,"
-      //   << "LoopNestingDepth,ExitBranches,InstCount,ArrayAccesses,"
-      //   << "CompToZero,CompToConst,IntComp,FloatComp,DoubleComp,"
-      //   << "PtrComp,NullPtrComp,MemAccesses,Expressions,IfStmts,"
-      //   << "FuncCalls,Assignments,MinArrSize,MaxArrSize,"
-        // << "NumBlocks,CyclomaticComplexity\n";
+      // The header (if you wish to use one) might be:
+      // File,LoopNumber,LoopNestingDepth,ExitBranches,InstCount,ArrayAccesses,
+      // CompToZero,CompToConst,IntComp,FloatComp,DoubleComp,PtrComp,NullPtrComp,
+      // MemAccesses,Expressions,IfStmts,FuncCalls,Assignments,MinArrSize,MaxArrSize,
+      // NumBlocks,CyclomaticComplexity,Add,Alloca,And,Or,Bitcast,Branch,Division,
+      // FMul,Mul,Loads,PHI,Store,Sub
       outFile << F.getParent()->getSourceFileName() << ","
         << loopNumber << ","
         << loopNestDepth << ","
@@ -233,15 +276,23 @@ struct LoopUnrollingFeaturePass : public PassInfoMixin<LoopUnrollingFeaturePass>
         << minArrSize << ","
         << maxArrSize << ","
         << numNodes << ","
-        << cyclomaticComplexity << "\n";
+        << cyclomaticComplexity << ","
+        << addInstCount << ","
+        << allocaInstCount << ","
+        << andInstCount << ","
+        << orInstCount << ","
+        << bitcastInstCount << ","
+        << branchInstCount << ","
+        << divisionInstCount << ","
+        << fMulInstCount << ","
+        << mulInstCount << ","
+        << loadInstCount << ","
+        << phiInstCount << ","
+        << storeInstCount << ","
+        << subInstCount << "\n";
     } else {
       errs() << "Error writing to file: loop_features.csv" << "\n";
     }
-
-    // Recursively analyze any nested subloops.
-    // for (Loop *SubLoop : L->getSubLoops()) {
-    //   analyzeLoop(SubLoop);
-    // }
   }
 
   // Main pass entry point.
