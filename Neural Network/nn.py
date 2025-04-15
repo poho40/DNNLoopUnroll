@@ -14,8 +14,10 @@ from torch.utils.data import Subset
 # ---------- Parameters ----------
 input_file = "../LoopUnrolling/results.csv"
 loop_info_file = "../FeatureExtraction/loop_features.csv"
-input_size = None  # Will infer from data
-num_classes = None # Will infer from unique labels
+
+num_hidden_layers = 2 # there is always at least 1
+hidden_size = 8
+
 batch_size = 32
 num_epochs = 40
 learning_rate = 0.001
@@ -88,18 +90,20 @@ val_loader = DataLoader(val_dataset, batch_size=batch_size)
 
 # ---------- Define Model ----------
 class SimpleClassifier(nn.Module):
-    def __init__(self, input_size, num_classes, hidden_size=8):
+    def __init__(self, input_size, num_classes, num_hidden_layers, hidden_size):
         super(SimpleClassifier, self).__init__()
-        self.fc1 = nn.Linear(input_size, hidden_size)
-        self.fc2 = nn.Linear(hidden_size, hidden_size)
+        self.hiddens = nn.ModuleList()
+        self.hiddens.append(nn.Linear(input_size, hidden_size))
+        for i in range(num_hidden_layers-1):
+            self.hiddens.append(nn.Linear(hidden_size, hidden_size))
         self.output = nn.Linear(hidden_size, num_classes)
 
     def forward(self, x):
-        x = torch.relu(self.fc1(x))
-        x = torch.relu(self.fc2(x))
+        for hidden in self.hiddens:
+            x = torch.relu(hidden(x))
         return self.output(x)
 
-model = SimpleClassifier(input_size=input_size, num_classes=num_classes)
+model = SimpleClassifier(input_size=input_size, num_classes=num_classes, num_hidden_layers=num_hidden_layers, hidden_size=hidden_size)
 # Count class frequencies
 class_counts = Counter(y)
 total_count = sum(class_counts.values())
