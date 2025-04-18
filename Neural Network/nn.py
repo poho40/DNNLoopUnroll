@@ -10,15 +10,18 @@ import numpy as np
 from collections import Counter
 from sklearn.model_selection import StratifiedShuffleSplit
 from torch.utils.data import Subset
+from sklearn.metrics import confusion_matrix
+import seaborn as sns
+import matplotlib.pyplot as plt
 
 # ---------- Parameters ----------
-input_file = "../LoopUnrolling/results.csv"
-loop_info_file = "../FeatureExtraction/loop_features.csv"
+input_file = "old_results.csv"
+loop_info_file = "loop_features.csv"
 input_size = None  # Will infer from data
 num_classes = None # Will infer from unique labels
 batch_size = 32
 num_epochs = 40
-learning_rate = 0.001
+learning_rate = 0.0001
 val_split = 0.2
 
 # ---------- Load loop info into a dictionary ----------
@@ -27,36 +30,61 @@ with open(loop_info_file, "r") as f:
     reader = csv.reader(f)
     headers = next(reader)
     for row in reader:
-        key = (row[0], row[1])  # File, LoopNumber
+        key = (row[0], row[1], row[2])  # File, LoopNumber
         loop_data[key] = row
 
 # ---------- Process input.csv and extract features + labels ----------
 X = []
 y = []
+times = {}
 for line in open(input_file, "r"):
     parts = line.strip().split(",")
     if len(parts) >= 2:
         filename = parts[0]
-        path = parts[1]
-
-        match_loop = re.search(r"/loop(\d+)/", path)
+        time = parts[1]
+        splits = filename.split("/")
+        # print(splits)
+        match_loop = re.search(r"/loop(\d+)/", filename)
         loop_num = match_loop.group(1) if match_loop else None
 
-        match_factor = re.search(r"loopUnrollingFactor_(\d+)\.ll", path)
+        match_factor = re.search(r"loopUnrollingFactor_(\d+)\.ll", filename)
         factor_part = match_factor.group(1) if match_factor else None
+        key = (splits[-4], splits[-3], loop_num)
+        if key not in times:
+            times[key] = {}
+        times[key][factor_part] = time
+        # if loop_num and factor_part and (splits[-4], splits[-3], loop_num) in loop_data:
+        #     row = loop_data[(splits[-4], splits[-3], loop_num)]
+        #     try:
+        #         features = list(map(float, row[2:]))  # from row[2:] onward
+        #         label = int(math.log2(int(factor_part)))  # log2 of unrolling factor
+        #         X.append(features)
+        #         y.append(label)
+        #     except Exception as e:
+        #         print(f"Skipping row due to error: {e}")
+key_to_times = {}
+for key in times:
+    # print(key)
+    factor_to_time = times[key]
+    sorted_times = dict(sorted(factor_to_time.items(), key=lambda item: float(item[1])))
+    key_to_times[key] = list(sorted_times.keys())
+    # print(factor_to_time, sorted_times.keys())
 
-        if loop_num and factor_part and (filename, loop_num) in loop_data:
-            row = loop_data[(filename, loop_num)]
-            try:
-                features = list(map(float, row[2:]))  # from row[2:] onward
-                label = int(math.log2(int(factor_part)))  # log2 of unrolling factor
-                X.append(features)
-                y.append(label)
-            except Exception as e:
-                print(f"Skipping row due to error: {e}")
-
+for key in key_to_times:
+    if key in loop_data:
+        row = loop_data[key]
+        factor_part = key_to_times[key][0]
+        try:
+            features = list(map(float, row[3:]))  # from row[2:] onward
+            label = int(math.log2(int(factor_part)))  # log2 of unrolling factor
+            # print(key, features, label)
+            X.append(features)
+            y.append(label)
+        except Exception as e:
+            print(f"Skipping row due to error: {e}")
 X = np.array(X, dtype=np.float32)
 y = np.array(y, dtype=np.int64)
+# print(X)
 input_size = X.shape[1]
 num_classes = len(set(y))
 
@@ -88,20 +116,25 @@ val_loader = DataLoader(val_dataset, batch_size=batch_size)
 
 # ---------- Define Model ----------
 class SimpleClassifier(nn.Module):
-    def __init__(self, input_size, num_classes, hidden_size=8):
+    def __init__(self, input_size, num_classes, hidden_size=32):
         super(SimpleClassifier, self).__init__()
-        self.fc1 = nn.Linear(input_size, hidden_size)
-        self.fc2 = nn.Linear(hidden_size, hidden_size)
-        self.output = nn.Linear(hidden_size, num_classes)
+        self.net = nn.Sequential(
+            nn.Linear(input_size, hidden_size),
+            nn.ReLU(),
+            nn.Dropout(0.3),
+            nn.Linear(hidden_size, hidden_size),
+            nn.ReLU(),
+            nn.Dropout(0.3),
+            nn.Linear(hidden_size, num_classes)
+        )
 
     def forward(self, x):
-        x = torch.relu(self.fc1(x))
-        x = torch.relu(self.fc2(x))
-        return self.output(x)
+       return self.net(x)
 
 model = SimpleClassifier(input_size=input_size, num_classes=num_classes)
 # Count class frequencies
 class_counts = Counter(y)
+print("Class distribution:", class_counts)
 total_count = sum(class_counts.values())
 
 # Compute class weights inversely proportional to frequency
