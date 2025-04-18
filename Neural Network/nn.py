@@ -15,8 +15,8 @@ import seaborn as sns
 import matplotlib.pyplot as plt
 
 # ---------- Parameters ----------
-input_file = "old_results.csv"
-loop_info_file = "loop_features.csv"
+input_file = "../LoopUnrolling/results.csv"
+loop_info_file = "../FeatureExtraction/loop_features.csv"
 input_size = None  # Will infer from data
 num_classes = None # Will infer from unique labels
 batch_size = 32
@@ -116,22 +116,18 @@ val_loader = DataLoader(val_dataset, batch_size=batch_size)
 
 # ---------- Define Model ----------
 class SimpleClassifier(nn.Module):
-    def __init__(self, input_size, num_classes, hidden_size=32):
+    def __init__(self, input_size, num_classes, hidden_size=8):
         super(SimpleClassifier, self).__init__()
-        self.net = nn.Sequential(
-            nn.Linear(input_size, hidden_size),
-            nn.ReLU(),
-            nn.Dropout(0.3),
-            nn.Linear(hidden_size, hidden_size),
-            nn.ReLU(),
-            nn.Dropout(0.3),
-            nn.Linear(hidden_size, num_classes)
-        )
+        self.fc1 = nn.Linear(input_size, hidden_size)
+        self.fc2 = nn.Linear(hidden_size, hidden_size)
+        self.output = nn.Linear(hidden_size, num_classes)
 
     def forward(self, x):
-       return self.net(x)
+        x = torch.relu(self.fc1(x))
+        x = torch.relu(self.fc2(x))
+        return self.output(x)
 
-model = SimpleClassifier(input_size=input_size, num_classes=num_classes)
+model = SimpleClassifier(input_size=input_size, num_classes=num_classes, num_hidden_layers=num_hidden_layers, hidden_size=hidden_size)
 # Count class frequencies
 class_counts = Counter(y)
 print("Class distribution:", class_counts)

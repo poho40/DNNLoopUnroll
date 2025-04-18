@@ -246,50 +246,98 @@ struct LoopUnrollingFeaturePass : public PassInfoMixin<LoopUnrollingFeaturePass>
     errs() << "Number of basic blocks in loop: " << numNodes << "\n";
     errs() << "Cyclomatic complexity: " << cyclomaticComplexity << "\n";
 
+    // We try to find a compare instruction in the loop header that tests a PHI node (the counter)
+    // against a constant, and the result of that compare is used to exit the loop.
+    int exitCounterValue = -1; // default (not found)
+    bool foundCounter = false;
+    BasicBlock *header = L->getHeader();
+    if (header) {
+      for (Instruction &I : *header) {
+        if (auto *cmpInst = dyn_cast<ICmpInst>(&I)) {
+          // Check if one operand is a PHI node and the other is a constant integer.
+          Value *phiCandidate = nullptr;
+          ConstantInt *constCandidate = nullptr;
+          if (auto *phi = dyn_cast<PHINode>(cmpInst->getOperand(0))) {
+            phiCandidate = phi;
+            constCandidate = dyn_cast<ConstantInt>(cmpInst->getOperand(1));
+          } else if (auto *phi = dyn_cast<PHINode>(cmpInst->getOperand(1))) {
+            phiCandidate = phi;
+            constCandidate = dyn_cast<ConstantInt>(cmpInst->getOperand(0));
+          }
+          if (phiCandidate && constCandidate) {
+            // Check if this comparison is used in a branch that exits the loop.
+            for (User *U : cmpInst->users()) {
+              if (auto *brInst = dyn_cast<BranchInst>(U)) {
+                if (brInst->isConditional()) {
+                  for (unsigned idx = 0; idx < brInst->getNumSuccessors(); idx++) {
+                    BasicBlock *succ = brInst->getSuccessor(idx);
+                    if (!L->contains(succ)) {
+                      exitCounterValue = constCandidate->getSExtValue(); // the exit constant
+                      foundCounter = true;
+                      break;
+                    }
+                  }
+                }
+              }
+              if (foundCounter)
+                break;
+            }
+          }
+        }
+        if (foundCounter)
+          break;
+      }
+    }
+    if (foundCounter)
+      errs() << "Loop exit counter value: " << exitCounterValue << "\n";
+    else
+      errs() << "No loop exit counter detected\n";
+
     // Append features to CSV file.
-    std::ofstream outFile("/n/eecs583a/home/weijiawu/DNNLoopUnroll/FeatureExtraction/loop_features.csv", std::ios::app); // Open in append mode
+    std::ofstream outFile("/n/eecs583a/home/rjutur/DNNLoopUnroll/FeatureExtraction/loop_features.csv", std::ios::app); // Open in append mode
     if (outFile.is_open()) {
       // The header (if you wish to use one) might be:
       // File,LoopNumber,LoopNestingDepth,ExitBranches,InstCount,ArrayAccesses,
       // CompToZero,CompToConst,IntComp,FloatComp,DoubleComp,PtrComp,NullPtrComp,
       // MemAccesses,Expressions,IfStmts,FuncCalls,Assignments,MinArrSize,MaxArrSize,
       // NumBlocks,CyclomaticComplexity,Add,Alloca,And,Or,Bitcast,Branch,Division,
-      // FMul,Mul,Loads,PHI,Store,Sub
+      // FMul,Mul,Loads,PHI,Store,Sub,ExitCounterValue
       outFile << F.getParent()->getSourceFileName() << ","
-        << loopNumber << ","
-        << loopNestDepth << ","
-        << exitBranchCount << ","
-        << instCount << ","
-        << arrayAccessCount << ","
-        << comparisonToZeroCount << ","
-        << comparisonToConstantCount << ","
-        << intCmpCount << ","
-        << floatCmpCount << ","
-        << doubleCmpCount << ","
-        << pointerCmpCount << ","
-        << nullPointerCmpCount << ","
-        << memAccessCount << ","
-        << expressionCount << ","
-        << ifStmtCount << ","
-        << functionCallCount << ","
-        << assignmentCount << ","
-        << minArrSize << ","
-        << maxArrSize << ","
-        << numNodes << ","
-        << cyclomaticComplexity << ","
-        << addInstCount << ","
-        << allocaInstCount << ","
-        << andInstCount << ","
-        << orInstCount << ","
-        << bitcastInstCount << ","
-        << branchInstCount << ","
-        << divisionInstCount << ","
-        << fMulInstCount << ","
-        << mulInstCount << ","
-        << loadInstCount << ","
-        << phiInstCount << ","
-        << storeInstCount << ","
-        << subInstCount << "\n";
+              << loopNumber << ","
+              << loopNestDepth << ","
+              << exitBranchCount << ","
+              << instCount << ","
+              << arrayAccessCount << ","
+              << comparisonToZeroCount << ","
+              << comparisonToConstantCount << ","
+              << intCmpCount << ","
+              << floatCmpCount << ","
+              << doubleCmpCount << ","
+              << pointerCmpCount << ","
+              << nullPointerCmpCount << ","
+              << memAccessCount << ","
+              << expressionCount << ","
+              << ifStmtCount << ","
+              << functionCallCount << ","
+              << assignmentCount << ","
+              << minArrSize << ","
+              << maxArrSize << ","
+              << numNodes << ","
+              << cyclomaticComplexity << ","
+              << addInstCount << ","
+              << allocaInstCount << ","
+              << andInstCount << ","
+              << orInstCount << ","
+              << bitcastInstCount << ","
+              << branchInstCount << ","
+              << divisionInstCount << ","
+              << fMulInstCount << ","
+              << mulInstCount << ","
+              << loadInstCount << ","
+              << phiInstCount << ","
+              << storeInstCount << ","
+              << subInstCount << ","
+              << exitCounterValue << "\n";
     } else {
       errs() << "Error writing to file: loop_features.csv" << "\n";
     }
