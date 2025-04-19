@@ -10,6 +10,8 @@
 #include "llvm/Passes/PassPlugin.h"
 #include "llvm/Passes/PassBuilder.h"
 #include "llvm/Support/raw_ostream.h"
+#include "llvm/Support/Path.h"  // make sure this is included
+
 
 #include <fstream>
 #include <limits>
@@ -210,23 +212,23 @@ struct LoopUnrollingFeaturePass : public PassInfoMixin<LoopUnrollingFeaturePass>
     }
 
     // Print the new instruction-specific features.
-    errs() << "Loop has " << addInstCount << " add instructions\n";
-    errs() << "Loop has " << allocaInstCount << " alloca instructions\n";
-    errs() << "Loop has " << andInstCount << " and instructions\n";
-    errs() << "Loop has " << orInstCount << " or instructions\n";
-    errs() << "Loop has " << bitcastInstCount << " bitcast instructions\n";
-    errs() << "Loop has " << branchInstCount << " branch instructions\n";
-    errs() << "Loop has " << divisionInstCount << " division instructions\n";
-    errs() << "Loop has " << fMulInstCount << " floating-point multiplication instructions\n";
-    errs() << "Loop has " << mulInstCount << " multiplication instructions\n";
-    errs() << "Loop has " << loadInstCount << " load instructions\n";
-    errs() << "Loop has " << phiInstCount << " phi instructions\n";
-    errs() << "Loop has " << storeInstCount << " store instructions\n";
-    errs() << "Loop has " << subInstCount << " subtract instructions\n";
+    // errs() << "Loop has " << addInstCount << " add instructions\n";
+    // errs() << "Loop has " << allocaInstCount << " alloca instructions\n";
+    // errs() << "Loop has " << andInstCount << " and instructions\n";
+    // errs() << "Loop has " << orInstCount << " or instructions\n";
+    // errs() << "Loop has " << bitcastInstCount << " bitcast instructions\n";
+    // errs() << "Loop has " << branchInstCount << " branch instructions\n";
+    // errs() << "Loop has " << divisionInstCount << " division instructions\n";
+    // errs() << "Loop has " << fMulInstCount << " floating-point multiplication instructions\n";
+    // errs() << "Loop has " << mulInstCount << " multiplication instructions\n";
+    // errs() << "Loop has " << loadInstCount << " load instructions\n";
+    // errs() << "Loop has " << phiInstCount << " phi instructions\n";
+    // errs() << "Loop has " << storeInstCount << " store instructions\n";
+    // errs() << "Loop has " << subInstCount << " subtract instructions\n";
 
     // Feature: Min/Max sizes of arrays referenced.
     auto [minArrSize, maxArrSize] = getMinMaxReferencedArraySizes(L);
-    errs() << "Loop array allocation sizes (min, max): (" << minArrSize << ", " << maxArrSize << ")\n";
+    // errs() << "Loop array allocation sizes (min, max): (" << minArrSize << ", " << maxArrSize << ")\n";
 
     // Feature: Cyclomatic Complexity for the loop.
     // Compute the number of nodes (basic blocks) and edges (within the loop).
@@ -243,8 +245,8 @@ struct LoopUnrollingFeaturePass : public PassInfoMixin<LoopUnrollingFeaturePass>
     }
     // For a connected graph: CC = E - N + 2.
     unsigned cyclomaticComplexity = (numEdges >= numNodes) ? numEdges - numNodes + 2 : 1;
-    errs() << "Number of basic blocks in loop: " << numNodes << "\n";
-    errs() << "Cyclomatic complexity: " << cyclomaticComplexity << "\n";
+    // errs() << "Number of basic blocks in loop: " << numNodes << "\n";
+    // errs() << "Cyclomatic complexity: " << cyclomaticComplexity << "\n";
 
     // We try to find a compare instruction in the loop header that tests a PHI node (the counter)
     // against a constant, and the result of that compare is used to exit the loop.
@@ -301,8 +303,14 @@ struct LoopUnrollingFeaturePass : public PassInfoMixin<LoopUnrollingFeaturePass>
       // CompToZero,CompToConst,IntComp,FloatComp,DoubleComp,PtrComp,NullPtrComp,
       // MemAccesses,Expressions,IfStmts,FuncCalls,Assignments,MinArrSize,MaxArrSize,
       // NumBlocks,CyclomaticComplexity,Add,Alloca,And,Or,Bitcast,Branch,Division,
+
+
+      std::string fullPath = F.getParent()->getSourceFileName();
+      llvm::StringRef fileName = llvm::sys::path::filename(fullPath);
+
       // FMul,Mul,Loads,PHI,Store,Sub,ExitCounterValue
-      outFile << F.getParent()->getSourceFileName() << ","
+      outFile << fileName.str() << ","
+              << F.getName().str() << ","
               << loopNumber << ","
               << loopNestDepth << ","
               << exitBranchCount << ","
@@ -352,7 +360,7 @@ struct LoopUnrollingFeaturePass : public PassInfoMixin<LoopUnrollingFeaturePass>
       totalBB++;
       totalInst += BB.size();
     }
-    errs() << "Function has " << totalBB << " basic blocks\n";
+    // errs() << "Function has " << totalBB << " basic blocks\n";
     errs() << "Function has " << totalInst << " instructions\n";
 
     // Count total loops in the function.
@@ -366,6 +374,7 @@ struct LoopUnrollingFeaturePass : public PassInfoMixin<LoopUnrollingFeaturePass>
     // Process each loop in the function.
     int loopNumber = 0;
     for (Loop *L : LI.getLoopsInPreorder()) {
+      errs() << "Loop Number: " << loopNumber << "\n";
       analyzeLoop(L, loopNumber, F);
       loopNumber++;
     }
