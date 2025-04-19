@@ -7,6 +7,8 @@
 #include "llvm/Analysis/LoopInfo.h"
 #include "llvm/Analysis/ScalarEvolution.h"
 #include "llvm/Analysis/BranchProbabilityInfo.h"
+#include "llvm/Analysis/BlockFrequencyInfo.h"
+#include "llvm/Analysis/DependenceAnalysis.h"
 #include "llvm/Passes/PassPlugin.h"
 #include "llvm/Passes/PassBuilder.h"
 #include "llvm/Support/raw_ostream.h"
@@ -72,7 +74,7 @@ struct LoopUnrollingFeaturePass : public PassInfoMixin<LoopUnrollingFeaturePass>
   }
 
   // Analyze a loop and print its features.
-  void analyzeLoop(Loop *L, int loopNumber, Function &F) {
+  void analyzeLoop(Loop *L, int loopNumber, Function &F, FunctionAnalysisManager &FAM) {
     // Feature: Loop nesting depth.
     unsigned loopNestDepth = L->getLoopDepth();
     errs() << "Loop nesting depth: " << loopNestDepth << "\n";
@@ -295,6 +297,89 @@ struct LoopUnrollingFeaturePass : public PassInfoMixin<LoopUnrollingFeaturePass>
     else
       errs() << "No loop exit counter detected\n";
 
+      // initialize feature variables for LLVM analyses
+      // med is short for median
+      int64_t hasTrip = 0;
+      int64_t tripCount = -1;
+      int64_t bf_min = 0;
+      int64_t bf_med = 0;
+      int64_t bf_max = 0;
+      double bp_min = 0;
+      double bp_med = 0;
+      double bp_max = 0;
+      int64_t dd_min = 0;
+      int64_t dd_med = 0;
+      int64_t dd_max = 0;
+
+      // get trip count if statically determinable
+      auto &SE = FAM.getResult<ScalarEvolutionAnalysis>(F);
+      const SCEV *BECount = SE.getBackedgeTakenCount(L);
+      if (auto *C = dyn_cast<SCEVConstant>(BECount)) {
+        tripCount = C->getAPInt().getSExtValue() + 1;
+        hasTrip = 1;
+      }  
+
+      // Get static block frequency heuristics
+      auto &BFI = FAM.getResult<BlockFrequencyAnalysis>(F);
+      std::vector<uint64_t> freqs;
+      freqs.reserve(L->getNumBlocks());
+      for (auto *BB : L->blocks())
+        freqs.push_back(BFI.getBlockFreq(BB).getFrequency());
+      std::sort(freqs.begin(), freqs.end());
+      bf_min = freqs.empty() ? 0 : freqs.front();
+      bf_med = freqs.empty() ? 0 : freqs[freqs.size()/2];
+      bf_max = freqs.empty() ? 0 : freqs.back();
+
+      // Get static branch probability heuristics
+      auto &BPI = FAM.getResult<BranchProbabilityAnalysis>(F);
+      std::vector<double> probs;
+      for (auto *BB : L->blocks()) {
+        if (auto *TI = dyn_cast<BranchInst>(BB->getTerminator())) {
+          if (TI->isConditional())
+            for (unsigned i = 0, e = TI->getNumSuccessors(); i < e; ++i) {
+              auto P = BPI.getEdgeProbability(BB, i);
+              probs.push_back(double(P.getNumerator()) / P.getDenominator());
+            }
+        }
+      }
+      std::sort(probs.begin(), probs.end());
+      bp_min = probs.empty() ? 0.0 : probs.front();
+      bp_med = probs.empty() ? 0.0 : probs[probs.size()/2];
+      bp_max = probs.empty() ? 0.0 : probs.back();
+
+      // Get cross-iteration memory dependencies
+      auto &DA = FAM.getResult<DependenceAnalysis>(F);
+      // collect all loads & stores in the loop
+      SmallVector<Instruction*, 8> MemInsts;
+      for (auto *BB : L->blocks())
+        for (Instruction &I : *BB)
+          if (isa<LoadInst>(&I) || isa<StoreInst>(&I))
+            MemInsts.push_back(&I);
+
+      // compute all pairwise distances, keep only integer constants
+      std::vector<int64_t> Dists;
+      for (size_t i = 0; i < MemInsts.size(); ++i) {
+        for (size_t j = 0; j < MemInsts.size(); ++j) {
+          std::unique_ptr<Dependence> Dep = DA.depends(MemInsts[i],
+                                                      MemInsts[j],
+                                                      /*UseScalar=*/true);
+          if (!Dep || !Dep->isOrdered()) 
+            continue;
+
+          // getDistance returns a const SCEV*
+          const SCEV *DistSCEV = Dep->getDistance(0);
+          if (auto *SC = dyn_cast<SCEVConstant>(DistSCEV)) {
+            // extract the integer value
+            Dists.push_back(SC->getAPInt().getSExtValue());
+          }
+        }
+      }
+
+      std::sort(Dists.begin(), Dists.end());
+      dd_min = Dists.empty() ? 0 : Dists.front();
+      dd_med = Dists.empty() ? 0 : Dists[Dists.size()/2];
+      dd_max = Dists.empty() ? 0 : Dists.back();
+
     // Append features to CSV file.
     std::ofstream outFile("/n/eecs583a/home/rjutur/DNNLoopUnroll/FeatureExtraction/loop_features.csv", std::ios::app); // Open in append mode
     if (outFile.is_open()) {
@@ -303,6 +388,7 @@ struct LoopUnrollingFeaturePass : public PassInfoMixin<LoopUnrollingFeaturePass>
       // CompToZero,CompToConst,IntComp,FloatComp,DoubleComp,PtrComp,NullPtrComp,
       // MemAccesses,Expressions,IfStmts,FuncCalls,Assignments,MinArrSize,MaxArrSize,
       // NumBlocks,CyclomaticComplexity,Add,Alloca,And,Or,Bitcast,Branch,Division,
+      // HasTripCount,TripCount,MinBranchFreq,MedBranchFreq,MaxBranchFreq,MinBranchProb,MedBranchProb,MaxBranchProb,MinMemoryDependencyDist,MedMemoryDependencyDist,MaxMemoryDependencyDist
 
 
       std::string fullPath = F.getParent()->getSourceFileName();
@@ -345,7 +431,18 @@ struct LoopUnrollingFeaturePass : public PassInfoMixin<LoopUnrollingFeaturePass>
               << phiInstCount << ","
               << storeInstCount << ","
               << subInstCount << ","
-              << exitCounterValue << "\n";
+              << exitCounterValue << ","
+              << hasTrip << ","
+              << tripCount << ","
+              << bf_min << ","
+              << bf_med << ","
+              << bf_max << ","
+              << bp_min << ","
+              << bp_med << ","
+              << bp_max << ","
+              << dd_min << ","
+              << dd_med << ","
+              << dd_max <<"\n";
     } else {
       errs() << "Error writing to file: loop_features.csv" << "\n";
     }
@@ -375,7 +472,7 @@ struct LoopUnrollingFeaturePass : public PassInfoMixin<LoopUnrollingFeaturePass>
     int loopNumber = 0;
     for (Loop *L : LI.getLoopsInPreorder()) {
       errs() << "Loop Number: " << loopNumber << "\n";
-      analyzeLoop(L, loopNumber, F);
+      analyzeLoop(L, loopNumber, F, FAM);
       loopNumber++;
     }
 
