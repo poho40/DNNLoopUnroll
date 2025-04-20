@@ -15,6 +15,7 @@
 #include "llvm/Support/Path.h"  // make sure this is included
 
 
+#include <iostream>
 #include <fstream>
 #include <limits>
 
@@ -317,7 +318,7 @@ struct LoopUnrollingFeaturePass : public PassInfoMixin<LoopUnrollingFeaturePass>
       if (auto *C = dyn_cast<SCEVConstant>(BECount)) {
         tripCount = C->getAPInt().getSExtValue() + 1;
         hasTrip = 1;
-      }  
+      }
 
       // Get static block frequency heuristics
       auto &BFI = FAM.getResult<BlockFrequencyAnalysis>(F);
@@ -349,39 +350,35 @@ struct LoopUnrollingFeaturePass : public PassInfoMixin<LoopUnrollingFeaturePass>
 
       // Get cross-iteration memory dependencies
       auto &DA = FAM.getResult<DependenceAnalysis>(F);
-      // collect all loads & stores in the loop
-      SmallVector<Instruction*, 8> MemInsts;
-      for (auto *BB : L->blocks())
-        for (Instruction &I : *BB)
-          if (isa<LoadInst>(&I) || isa<StoreInst>(&I))
+      SmallVector<Instruction *, 16> MemInsts;
+      for (BasicBlock *BB : L->blocks()) {
+        for (Instruction &I : *BB) {
+          if (I.mayReadOrWriteMemory())
             MemInsts.push_back(&I);
+        }
+      }
 
-      // compute all pairwise distances, keep only integer constants
-      std::vector<int64_t> Dists;
-      for (size_t i = 0; i < MemInsts.size(); ++i) {
-        for (size_t j = 0; j < MemInsts.size(); ++j) {
-          std::unique_ptr<Dependence> Dep = DA.depends(MemInsts[i],
-                                                      MemInsts[j],
-                                                      /*UseScalar=*/true);
-          if (!Dep || !Dep->isOrdered()) 
+      // Check dependencies between each pair of memory instructions
+      for (auto *I : MemInsts) {
+        for (auto *J : MemInsts) {
+          if (I == J)
             continue;
 
-          // getDistance returns a const SCEV*
-          const SCEV *DistSCEV = Dep->getDistance(0);
-          if (auto *SC = dyn_cast<SCEVConstant>(DistSCEV)) {
-            // extract the integer value
-            Dists.push_back(SC->getAPInt().getSExtValue());
+          // Query for a dependence; true = loop-independent dependence ignored
+          if (std::unique_ptr<Dependence> D = DA.depends(I, J, /*isLoopIndependent=*/false)) {
+            // if (!D->isLoopIndependent()) {
+              errs() << "Loop-carried dependence in loop at depth "
+                    << L->getLoopDepth() << ":\n";
+              errs() << "  Src: "; I->print(errs()); errs() << "\n";
+              errs() << "  Dst: "; J->print(errs()); errs() << "\n";
+              errs() << "\n";
+            // }
           }
         }
       }
 
-      std::sort(Dists.begin(), Dists.end());
-      dd_min = Dists.empty() ? 0 : Dists.front();
-      dd_med = Dists.empty() ? 0 : Dists[Dists.size()/2];
-      dd_max = Dists.empty() ? 0 : Dists.back();
-
     // Append features to CSV file.
-    std::ofstream outFile("/n/eecs583a/home/rjutur/DNNLoopUnroll/FeatureExtraction/loop_features.csv", std::ios::app); // Open in append mode
+    std::ofstream outFile("/n/eecs583b/home/bdwzhang/DNNLoopUnroll/FeatureExtraction/loop_features.csv", std::ios::app); // Open in append mode
     if (outFile.is_open()) {
       // The header (if you wish to use one) might be:
       // File,LoopNumber,LoopNestingDepth,ExitBranches,InstCount,ArrayAccesses,
