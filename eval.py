@@ -67,7 +67,15 @@ for line in open(input_file, "r"):
         factor_part = match_factor.group(1) if match_factor else None
         keys.append((splits[8],splits[9], splits[10], loop_num))
 keys = set(keys)
+times = {}
+for line in open(input_file, "r"):
+    parts = line.strip().split(",")
+    if len(parts) >= 2:
+        filename = parts[0]
+        time = parts[1]
+        times[filename] = time
 # print(keys)
+number_valid = 0
 for key in keys:
     # print(key)
     try:
@@ -79,27 +87,16 @@ for key in keys:
             output = model(input_tensor)
             predicted_class = torch.argmax(output, dim=1).item()
             predicted_unroll = CLASS_TO_UNROLL[predicted_class]
-        normal_filepath = f"LoopUnrolling/unrolled_loops/{key[0]}/{key[1]}/{key[2]}/loop{key[3]}/loopUnrollingFactor_1.ll"
-        unroll_filepath = f"LoopUnrolling/unrolled_loops/{key[0]}/{key[1]}/{key[2]}/loop{key[3]}/loopUnrollingFactor_{2**predicted_unroll}.ll"
+        normal_filepath = f"/n/eecs583a/home/rjutur/DNNLoopUnroll/LoopUnrolling/unrolled_loops/{key[0]}/{key[1]}/{key[2]}/loop{key[3]}/loopUnrollingFactor_1.ll"
+        unroll_filepath = f"/n/eecs583a/home/rjutur/DNNLoopUnroll/LoopUnrolling/unrolled_loops/{key[0]}/{key[1]}/{key[2]}/loop{key[3]}/loopUnrollingFactor_{2**predicted_unroll}.ll"
         try:
-            result = subprocess.run(
-                ["./evalOneFile.sh", normal_filepath],
-                check=True,
-                capture_output=True,
-                text=True
-            )
-            original_exec_time = float(result.stdout.strip())
-
-            unroll_result = subprocess.run(
-                ["./evalOneFile.sh", unroll_filepath],
-                check=True,
-                capture_output=True,
-                text=True
-            )
-            unroll_exec_time = float(unroll_result.stdout.strip())
-            speedup = original_exec_time / unroll_exec_time if unroll_exec_time != 0 else float('inf')
-            print(original_exec_time, unroll_exec_time)
-            print(f"Speedup from unrolling: {speedup:.2f}x")
+            if normal_filepath in times and unroll_filepath in times:
+                original_exec_time = float(times[normal_filepath])
+                unroll_exec_time = float(times[unroll_filepath])
+                speedup = original_exec_time / unroll_exec_time if unroll_exec_time != 0 else float('inf')
+                print(original_exec_time, unroll_exec_time)
+                print(f"Speedup from unrolling: {speedup:.2f}x")
+                number_valid += 1
             
         except subprocess.CalledProcessError as e:
             print(f"Error running evalOneFile.sh for {key}: {e.stderr}")
@@ -107,4 +104,5 @@ for key in keys:
 
     except Exception as e:
         print(f"Error processing {key}: {e}")
-    break
+
+print(speedup/number_valid)
