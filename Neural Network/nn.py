@@ -23,9 +23,9 @@ input_size = None  # Will infer from data
 num_classes = None # Will infer from unique labels
 batch_size = 16
 num_epochs = 40
-num_hidden_layers = 8 # there is always at least 1
+num_hidden_layers = 2 # there is always at least 1
 hidden_size = 16
-learning_rate = 0.00001
+learning_rate = 0.001
 val_split = 0.2
 
 # ---------- Load loop info into a dictionary ----------
@@ -182,6 +182,14 @@ optimizer = optim.Adam(model.parameters(), lr=learning_rate)
 best_val_acc = 0.0
 best_model_path = "best_model.pth"
 
+# Lists to track metrics
+train_losses = []
+val_losses = []
+train_accuracies = []
+val_accuracies_top1 = []
+val_accuracies_top3 = []
+best_epoch = 0
+
 # ---------- Training + Validation Loop ----------
 for epoch in range(num_epochs):
     model.train()
@@ -226,6 +234,7 @@ for epoch in range(num_epochs):
     val_loss /= len(val_loader)
     if val_acc_top1 > best_val_acc:
         best_val_acc = val_acc_top1
+        best_epoch = epoch + 1
         torch.save(model.state_dict(), best_model_path)
         print(f">>> Saved new best model with Val Top-1 Acc: {val_acc_top1:.2f}%")
 
@@ -233,43 +242,68 @@ for epoch in range(num_epochs):
         f"Train Loss: {train_loss:.4f} | Train Acc: {train_acc:.2f}% "
         f"|| Val Loss: {val_loss:.4f} | Val Top-1 Acc: {val_acc_top1:.2f}% | Val Top-3 Acc: {val_acc_top3:.2f}%")
 
-# Split manually again for sklearn
-# split = StratifiedShuffleSplit(n_splits=1, test_size=val_split, random_state=42)
-# for train_idx, val_idx in split.split(X_np, y_np):
-#     X_train, X_val = X_np[train_idx], X_np[val_idx]
-#     y_train, y_val = y_np[train_idx], y_np[val_idx]
+    # Track metrics
+    train_losses.append(train_loss)
+    val_losses.append(val_loss)
+    train_accuracies.append(train_acc)
+    val_accuracies_top1.append(val_acc_top1)
+    val_accuracies_top3.append(val_acc_top3)
 
-# # Train Random Forest
-# full_rf = RandomForestClassifier(n_estimators=100, random_state=42)
-# full_rf.fit(X_train, y_train)
+# Plot metrics
+plt.figure(figsize=(12, 8))
 
-# # Step 2: Get feature importances
-# importances = full_rf.feature_importances_
-# top5_indices = np.argsort(importances)[-5:]  # Get indices of top 5 features
-# print(top5_indices)
+# Plot losses
+plt.subplot(2, 1, 1)
+plt.plot(range(1, num_epochs + 1), train_losses, 'b-', label='Train Loss')
+plt.plot(range(1, num_epochs + 1), val_losses, 'r-', label='Val Loss')
+plt.axvline(x=best_epoch, color='g', linestyle='--', label=f'Best Model (Epoch {best_epoch})')
+plt.xlabel('Epoch')
+plt.ylabel('Loss')
+plt.title('Loss over Epochs')
+plt.legend()
+plt.grid(True)
 
-# # Step 3: Select only top 5 features from the data
-# X_train_top5 = X_train[:, top5_indices]
-# X_val_top5 = X_val[:, top5_indices]
+# Plot accuracies
+plt.subplot(2, 1, 2)
+plt.plot(range(1, num_epochs + 1), train_accuracies, 'b-', label='Train Acc')
+plt.plot(range(1, num_epochs + 1), val_accuracies_top1, 'r-', label='Val Top-1 Acc')
+plt.plot(range(1, num_epochs + 1), val_accuracies_top3, 'g-', label='Val Top-3 Acc')
+plt.axvline(x=best_epoch, color='purple', linestyle='--', label=f'Best Model (Epoch {best_epoch})')
+plt.xlabel('Epoch')
+plt.ylabel('Accuracy (%)')
+plt.title('Accuracy over Epochs')
+plt.legend()
+plt.grid(True)
 
-# # Step 4: Train new Random Forest on top 5 features
-# rf_top5 = RandomForestClassifier(n_estimators=100, random_state=42)
-# rf_top5.fit(X_train_top5, y_train)
+plt.tight_layout()
+plt.savefig('training_metrics.png')
+plt.show()
 
-# # Step 5: Evaluate
-# train_preds = rf_top5.predict(X_train_top5)
-# val_preds = rf_top5.predict(X_val_top5)
+# Create a separate figure for best model metrics
+plt.figure(figsize=(10, 6))
+plt.subplot(1, 2, 1)
+plt.plot(range(1, best_epoch + 1), train_losses[:best_epoch], 'b-', label='Train Loss')
+plt.plot(range(1, best_epoch + 1), val_losses[:best_epoch], 'r-', label='Val Loss')
+plt.xlabel('Epoch')
+plt.ylabel('Loss')
+plt.title(f'Loss until Best Model (Epoch {best_epoch})')
+plt.legend()
+plt.grid(True)
 
-# train_acc = accuracy_score(y_train, train_preds)
-# val_acc = accuracy_score(y_val, val_preds)
+plt.subplot(1, 2, 2)
+plt.plot(range(1, best_epoch + 1), train_accuracies[:best_epoch], 'b-', label='Train Acc')
+plt.plot(range(1, best_epoch + 1), val_accuracies_top1[:best_epoch], 'r-', label='Val Top-1 Acc')
+plt.plot(range(1, best_epoch + 1), val_accuracies_top3[:best_epoch], 'g-', label='Val Top-3 Acc')
+plt.xlabel('Epoch')
+plt.ylabel('Accuracy (%)')
+plt.title(f'Accuracy until Best Model (Epoch {best_epoch})')
+plt.legend()
+plt.grid(True)
 
-# print(f"Train Accuracy (Top 5): {train_acc*100:.2f}%")
-# print(f"Validation Accuracy (Top 5): {val_acc*100:.2f}%")
+plt.tight_layout()
+plt.savefig('best_model_metrics.png')
+plt.show()
 
-# # Optional: Visualize top 5 importances
-# plt.barh(range(5), importances[top5_indices])
-# plt.yticks(range(5), [f"Feature {i}" for i in top5_indices])
-# plt.xlabel("Importance")
-# plt.title("Top 5 Features by Importance")
-# plt.tight_layout()
-# plt.show()
+print(f"Best model was saved at epoch {best_epoch} with Val Top-1 Acc: {best_val_acc:.2f}%")
+print(f"Training metrics saved to 'training_metrics.png'")
+print(f"Best model metrics saved to 'best_model_metrics.png'")
