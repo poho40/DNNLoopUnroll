@@ -36,7 +36,33 @@ struct LoopUnrollingFeaturePass : public PassInfoMixin<LoopUnrollingFeaturePass>
 
     Module *OrigModule = F.getParent();
     std::string fileBaseName = OrigModule->getSourceFileName();
-    std::string dirName = "unrolled_loops";
+
+    
+    // std::string folderName = fs::path(fileBaseName).parent_path().filename().string();
+
+    // errs() << "FolderName: " << folderName << "\n";
+
+    std::string dirName = "/n/eecs583a/home/rjutur/DNNLoopUnroll/LoopUnrolling/unrolled_loops";
+
+    if (!fs::exists(dirName)) {
+      fs::create_directory(dirName);
+    }
+
+
+    //DEBUG
+    for (const auto &CU : OrigModule->debug_compile_units()) {
+      std::string fullPath = CU->getFilename().str();
+      std::string directory = CU->getDirectory().str();
+  
+      std::string fullFilePath = directory + "/" + fullPath;
+      std::string folderName = fs::path(fullFilePath).parent_path().filename().string();
+
+      if (folderName != ""){
+        dirName += "/" + folderName;
+      }
+    }
+
+    //DEBUG
 
     if (!fileBaseName.empty() && fileBaseName.back() == '/')
       fileBaseName.pop_back();
@@ -44,8 +70,8 @@ struct LoopUnrollingFeaturePass : public PassInfoMixin<LoopUnrollingFeaturePass>
     if (!fs::exists(dirName)) {
       fs::create_directory(dirName);
     }
-    if (!fs::exists(dirName + "/" + fileBaseName)) {
-      fs::create_directory(dirName + "/" + fileBaseName);
+    if (!fs::exists(dirName + "/" + fileBaseName + "/" + F.getName().str())) {
+      fs::create_directories(dirName + "/" + fileBaseName + "/" + F.getName().str());
     }
 
     for (int count : unrollCounts) {
@@ -81,9 +107,11 @@ struct LoopUnrollingFeaturePass : public PassInfoMixin<LoopUnrollingFeaturePass>
 
       int loopNumber = 0;
       for (Loop *loop : LI.getLoopsInPreorder()) {
-        std::string loopDir = dirName + "/" + fileBaseName + "/loop" + std::to_string(loopNumber);
+        errs() << "Function: " << F.getName().str() << "\n";
+
+        std::string loopDir = dirName + "/" + fileBaseName + "/" + F.getName().str() + "/loop" + std::to_string(loopNumber);
         if (!fs::exists(loopDir)) {
-          fs::create_directory(loopDir);
+          fs::create_directories(loopDir);
         }
 
         UnrollLoopOptions ULO;

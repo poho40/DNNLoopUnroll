@@ -10,16 +10,21 @@ import numpy as np
 from collections import Counter
 from sklearn.model_selection import StratifiedShuffleSplit
 from torch.utils.data import Subset
+from sklearn.metrics import confusion_matrix
+import seaborn as sns
+import matplotlib.pyplot as plt
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.metrics import accuracy_score, classification_report, confusion_matrix
 
 # ---------- Parameters ----------
-input_file = "../LoopUnrolling/results.csv"
-loop_info_file = "../FeatureExtraction/loop_features.csv"
-
-num_hidden_layers = 2 # there is always at least 1
-hidden_size = 8
-
-batch_size = 32
+input_file = "old_results.csv"
+loop_info_file = "loop_features.csv"
+input_size = None  # Will infer from data
+num_classes = None # Will infer from unique labels
+batch_size = 16
 num_epochs = 40
+num_hidden_layers = 2 # there is always at least 1
+hidden_size = 16
 learning_rate = 0.001
 val_split = 0.2
 
@@ -29,55 +34,111 @@ with open(loop_info_file, "r") as f:
     reader = csv.reader(f)
     headers = next(reader)
     for row in reader:
-        key = (row[0], row[1])  # File, LoopNumber
+        key = (row[0], row[1], row[2])  # File, LoopNumber
         loop_data[key] = row
 
 # ---------- Process input.csv and extract features + labels ----------
 X = []
 y = []
+times = {}
 for line in open(input_file, "r"):
     parts = line.strip().split(",")
     if len(parts) >= 2:
         filename = parts[0]
-        path = parts[1]
-
-        match_loop = re.search(r"/loop(\d+)/", path)
+        time = parts[1]
+        splits = filename.split("/")
+        # print(splits)
+        match_loop = re.search(r"/loop(\d+)/", filename)
         loop_num = match_loop.group(1) if match_loop else None
 
-        match_factor = re.search(r"loopUnrollingFactor_(\d+)\.ll", path)
+        match_factor = re.search(r"loopUnrollingFactor_(\d+)\.ll", filename)
         factor_part = match_factor.group(1) if match_factor else None
+        key = (splits[9], splits[10], loop_num)
+        if key not in times:
+            times[key] = {}
+        times[key][factor_part] = time
+        # if loop_num and factor_part and (splits[-4], splits[-3], loop_num) in loop_data:
+        #     row = loop_data[(splits[-4], splits[-3], loop_num)]
+        #     try:
+        #         features = list(map(float, row[2:]))  # from row[2:] onward
+        #         label = int(math.log2(int(factor_part)))  # log2 of unrolling factor
+        #         X.append(features)
+        #         y.append(label)
+        #     except Exception as e:
+        #         print(f"Skipping row due to error: {e}")
+key_to_times = {}
+for key in times:
+    # print(key)
+    if len(times[key]) == 5:
+        factor_to_time = times[key]
+        sorted_times = dict(sorted(factor_to_time.items(), key=lambda item: float(item[1])))
+        key_to_times[key] = list(sorted_times.keys())
+    # print(factor_to_time, sorted_times.keys())
 
-        if loop_num and factor_part and (filename, loop_num) in loop_data:
-            row = loop_data[(filename, loop_num)]
-            try:
-                features = list(map(float, row[2:]))  # from row[2:] onward
-                label = int(math.log2(int(factor_part)))  # log2 of unrolling factor
-                X.append(features)
-                y.append(label)
-            except Exception as e:
-                print(f"Skipping row due to error: {e}")
-
+for key in key_to_times:
+    if key in loop_data:
+        row = loop_data[key]
+        factor_part = key_to_times[key][0]
+        try:
+            features = list(map(float, row[3:]))  # from row[2:] onward
+            label = int(math.log2(int(factor_part)))  # log2 of unrolling factor
+            # print(key, features, label)
+            X.append(features)
+            y.append(label)
+        except Exception as e:
+            print(f"Skipping row due to error: {e}")
 X = np.array(X, dtype=np.float32)
+# top_features = [29,  0, 16, 17,  2]
+# X = X[:, top_features]
 y = np.array(y, dtype=np.int64)
+# # print(X)
 input_size = X.shape[1]
 num_classes = len(set(y))
 
-# ---------- Normalize features ----------
-scaler = StandardScaler()
-X = scaler.fit_transform(X)
+# # ---------- Normalize features ----------
+# scaler = StandardScaler()
+# X = scaler.fit_transform(X)
 
-# ---------- Train/Val split ----------
+# # ---------- Train/Val split ----------
 X_tensor = torch.tensor(X)
 y_tensor = torch.tensor(y)
 dataset = TensorDataset(X_tensor, y_tensor)
-# val_len = int(len(dataset) * val_split)
-# train_len = len(dataset) - val_len
-# train_dataset, val_dataset = random_split(dataset, [train_len, val_len])
-# train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
-# val_loader = DataLoader(val_dataset, batch_size=batch_size)
+
 X_np = X_tensor.numpy()
 y_np = y_tensor.numpy()
 
+# split = StratifiedShuffleSplit(n_splits=1, test_size=val_split, random_state=42)
+# for train_idx, val_idx in split.split(X_np, y_np):
+#     X_train, X_val = X_np[train_idx], X_np[val_idx]
+#     y_train, y_val = y_np[train_idx], y_np[val_idx]
+
+# # Train Random Forest
+# full_rf = RandomForestClassifier(n_estimators=100, random_state=42)
+# full_rf.fit(X_train, y_train)
+
+# # Step 2: Get feature importances
+# importances = full_rf.feature_importances_
+# top5_indices = np.argsort(importances)[-5:]  # Get indices of top 5 features
+# print(top5_indices)
+# X = np.array(X, dtype=np.float32)
+# # top_features = [29,  0, 16, 17,  2]
+# X = X[:, top5_indices]
+# y = np.array(y, dtype=np.int64)
+# # # print(X)
+# input_size = X.shape[1]
+# num_classes = len(set(y))
+
+# # # ---------- Normalize features ----------
+# scaler = StandardScaler()
+# X = scaler.fit_transform(X)
+
+# # # ---------- Train/Val split ----------
+# X_tensor = torch.tensor(X)
+# y_tensor = torch.tensor(y)
+# dataset = TensorDataset(X_tensor, y_tensor)
+
+# X_np = X_tensor.numpy()
+# y_np = y_tensor.numpy()
 # Use stratified splitter
 split = StratifiedShuffleSplit(n_splits=1, test_size=val_split, random_state=42)
 for train_idx, val_idx in split.split(X_np, y_np):
@@ -92,20 +153,23 @@ val_loader = DataLoader(val_dataset, batch_size=batch_size)
 class SimpleClassifier(nn.Module):
     def __init__(self, input_size, num_classes, num_hidden_layers, hidden_size):
         super(SimpleClassifier, self).__init__()
-        self.hiddens = nn.ModuleList()
-        self.hiddens.append(nn.Linear(input_size, hidden_size))
-        for i in range(num_hidden_layers-1):
-            self.hiddens.append(nn.Linear(hidden_size, hidden_size))
+        self.layers = nn.ModuleList()
+        self.layers.append(nn.Linear(input_size, hidden_size))
+        self.layers.append(nn.ReLU())
+        for _ in range(num_hidden_layers - 1):
+            self.layers.append(nn.Linear(hidden_size, hidden_size))
+            self.layers.append(nn.ReLU())
         self.output = nn.Linear(hidden_size, num_classes)
 
     def forward(self, x):
-        for hidden in self.hiddens:
-            x = torch.relu(hidden(x))
+        for layer in self.layers:
+            x = layer(x)
         return self.output(x)
 
 model = SimpleClassifier(input_size=input_size, num_classes=num_classes, num_hidden_layers=num_hidden_layers, hidden_size=hidden_size)
 # Count class frequencies
 class_counts = Counter(y)
+print("Class distribution:", class_counts)
 total_count = sum(class_counts.values())
 
 # Compute class weights inversely proportional to frequency
@@ -115,6 +179,16 @@ class_weights_tensor = torch.tensor(class_weights, dtype=torch.float32)
 # Pass it to the loss function
 criterion = nn.CrossEntropyLoss(weight=class_weights_tensor)
 optimizer = optim.Adam(model.parameters(), lr=learning_rate)
+best_val_acc = 0.0
+best_model_path = "best_model.pth"
+
+# Lists to track metrics
+train_losses = []
+val_losses = []
+train_accuracies = []
+val_accuracies_top1 = []
+val_accuracies_top3 = []
+best_epoch = 0
 
 # ---------- Training + Validation Loop ----------
 for epoch in range(num_epochs):
@@ -136,20 +210,100 @@ for epoch in range(num_epochs):
 
     model.eval()
     val_loss = 0.0
-    correct, total = 0, 0
+    correct_top1, correct_top3, total = 0, 0, 0
     with torch.no_grad():
         for inputs, labels in val_loader:
             outputs = model(inputs)
             loss = criterion(outputs, labels)
             val_loss += loss.item()
+
+            # Top-1 predictions
             _, preds = torch.max(outputs, 1)
+            correct_top1 += (preds == labels).sum().item()
+
+            # Top-3 predictions
+            top3_preds = torch.topk(outputs, k=3, dim=1).indices
+            for i in range(labels.size(0)):
+                if labels[i].item() in top3_preds[i]:
+                    correct_top3 += 1
+
             total += labels.size(0)
-            correct += (preds == labels).sum().item()
-    val_acc = 100 * correct / total
+
+    val_acc_top1 = 100 * correct_top1 / total
+    val_acc_top3 = 100 * correct_top3 / total
     val_loss /= len(val_loader)
+    if val_acc_top1 > best_val_acc:
+        best_val_acc = val_acc_top1
+        best_epoch = epoch + 1
+        torch.save(model.state_dict(), best_model_path)
+        print(f">>> Saved new best model with Val Top-1 Acc: {val_acc_top1:.2f}%")
 
     print(f"Epoch [{epoch+1}/{num_epochs}] "
-          f"Train Loss: {train_loss:.4f} | Train Acc: {train_acc:.2f}% "
-          f"|| Val Loss: {val_loss:.4f} | Val Acc: {val_acc:.2f}%")
+        f"Train Loss: {train_loss:.4f} | Train Acc: {train_acc:.2f}% "
+        f"|| Val Loss: {val_loss:.4f} | Val Top-1 Acc: {val_acc_top1:.2f}% | Val Top-3 Acc: {val_acc_top3:.2f}%")
 
-print("Training complete")
+    # Track metrics
+    train_losses.append(train_loss)
+    val_losses.append(val_loss)
+    train_accuracies.append(train_acc)
+    val_accuracies_top1.append(val_acc_top1)
+    val_accuracies_top3.append(val_acc_top3)
+
+# Plot metrics
+plt.figure(figsize=(12, 8))
+
+# Plot losses
+plt.subplot(2, 1, 1)
+plt.plot(range(1, num_epochs + 1), train_losses, 'b-', label='Train Loss')
+plt.plot(range(1, num_epochs + 1), val_losses, 'r-', label='Val Loss')
+plt.axvline(x=best_epoch, color='g', linestyle='--', label=f'Best Model (Epoch {best_epoch})')
+plt.xlabel('Epoch')
+plt.ylabel('Loss')
+plt.title('Loss over Epochs')
+plt.legend()
+plt.grid(True)
+
+# Plot accuracies
+plt.subplot(2, 1, 2)
+plt.plot(range(1, num_epochs + 1), train_accuracies, 'b-', label='Train Acc')
+plt.plot(range(1, num_epochs + 1), val_accuracies_top1, 'r-', label='Val Top-1 Acc')
+plt.plot(range(1, num_epochs + 1), val_accuracies_top3, 'g-', label='Val Top-3 Acc')
+plt.axvline(x=best_epoch, color='purple', linestyle='--', label=f'Best Model (Epoch {best_epoch})')
+plt.xlabel('Epoch')
+plt.ylabel('Accuracy (%)')
+plt.title('Accuracy over Epochs')
+plt.legend()
+plt.grid(True)
+
+plt.tight_layout()
+plt.savefig('training_metrics.png')
+plt.show()
+
+# Create a separate figure for best model metrics
+plt.figure(figsize=(10, 6))
+plt.subplot(1, 2, 1)
+plt.plot(range(1, best_epoch + 1), train_losses[:best_epoch], 'b-', label='Train Loss')
+plt.plot(range(1, best_epoch + 1), val_losses[:best_epoch], 'r-', label='Val Loss')
+plt.xlabel('Epoch')
+plt.ylabel('Loss')
+plt.title(f'Loss until Best Model (Epoch {best_epoch})')
+plt.legend()
+plt.grid(True)
+
+plt.subplot(1, 2, 2)
+plt.plot(range(1, best_epoch + 1), train_accuracies[:best_epoch], 'b-', label='Train Acc')
+plt.plot(range(1, best_epoch + 1), val_accuracies_top1[:best_epoch], 'r-', label='Val Top-1 Acc')
+plt.plot(range(1, best_epoch + 1), val_accuracies_top3[:best_epoch], 'g-', label='Val Top-3 Acc')
+plt.xlabel('Epoch')
+plt.ylabel('Accuracy (%)')
+plt.title(f'Accuracy until Best Model (Epoch {best_epoch})')
+plt.legend()
+plt.grid(True)
+
+plt.tight_layout()
+plt.savefig('best_model_metrics.png')
+plt.show()
+
+print(f"Best model was saved at epoch {best_epoch} with Val Top-1 Acc: {best_val_acc:.2f}%")
+print(f"Training metrics saved to 'training_metrics.png'")
+print(f"Best model metrics saved to 'best_model_metrics.png'")

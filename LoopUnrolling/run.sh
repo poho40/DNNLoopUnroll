@@ -11,7 +11,7 @@ PASS=func-name
 rm -f default.profraw *_prof *_fplicm *.bc *.profdata *_output *.ll
 
 # Convert source code to bitcode (IR).
-clang -emit-llvm -c ${1}.c -Xclang -disable-O0-optnone -o ${1}.bc
+clang -g -emit-llvm -c ${1}.c -Xclang -disable-O0-optnone -o ${1}.bc
 
 # Canonicalize natural loops (Ref: llvm.org/doxygen/LoopSimplify_8h_source.html)
 opt -passes='loop-simplify' ${1}.bc -o ${1}.ls.bc

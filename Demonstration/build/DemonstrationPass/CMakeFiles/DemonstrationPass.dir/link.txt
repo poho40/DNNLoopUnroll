@@ -1,0 +1,1 @@
+/usr/bin/c++ -fPIC  -Wl,--gc-sections -shared  -o DemonstrationPass.so CMakeFiles/DemonstrationPass.dir/Pass.cpp.o  -Wl,-rpath,"\$ORIGIN/../lib:" 

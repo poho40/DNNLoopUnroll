@@ -35,10 +35,13 @@ PASS=func-name
 rm -f default.profraw *_prof *_fplicm *.bc *.profdata *_output *.ll
 
 # Convert source code to bitcode (IR).
-clang -emit-llvm -c "${1}.c" -Xclang -disable-O0-optnone -o ${1}.bc
+clang -emit-llvm -c "${1}.c" -Xclang -disable-O0-optnone -o "${1}.bc"
+
+# Apply O1 optimization
+opt "${1}.bc" -o "${1}.opt.bc"
 
 # Canonicalize natural loops (Ref: llvm.org/doxygen/LoopSimplify_8h_source.html)
-opt -passes='loop-simplify' "${1}.bc" -o "${1}.ls.bc"
+opt -passes='loop-simplify' "${1}.opt.bc" -o "${1}.ls.bc"
 
 # # Instrument profiler passes.
 # opt -passes='pgo-instr-gen,instrprof' ${1}.ls.bc -o ${1}.ls.prof.bc
@@ -58,7 +61,7 @@ opt -passes='loop-simplify' "${1}.bc" -o "${1}.ls.bc"
 
 # Apply your pass on the profile-augmented bitcode
 # opt -load-pass-plugin="${PATH2LIB}" -passes="${PASS}" ${1}.profdata.bc -o ${1}.fplicm.bc > /dev/null
-opt -load-pass-plugin="${PATH2LIB}" -passes="${PASS}" ${1}.ls.bc -o ${1}.fplicm.bc > /dev/null
+opt -load-pass-plugin="${PATH2LIB}" -passes="${PASS}" "${1}.ls.bc" -o "${1}.fplicm.bc" > /dev/null
 
 # # Generate binary executable after FPLICM: Optimized code
 # clang ${1}.fplicm.bc -o ${1}_fplicm
@@ -75,4 +78,4 @@ opt -load-pass-plugin="${PATH2LIB}" -passes="${PASS}" ${1}.ls.bc -o ${1}.fplicm.
 # fi
 
 # Cleanup: Remove this if you want to retain the created files (for example, for viz.sh). 
-# rm -f default.profraw *_prof *_fplicm *.bc *.profdata *_output *.ll
+rm -f default.profraw *_prof *_fplicm *.bc *.profdata *_output *.ll
